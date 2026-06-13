@@ -123,7 +123,7 @@ export default function FormsPage() {
   const form = selected ? FORM_TYPES[selected] : null
 
   return (
-    <div className="flex min-h-screen">
+    <div className="flex flex-row min-h-screen">
       <Sidebar />
       <main className="flex-1 p-8 max-w-4xl">
         <h1 className="text-2xl font-bold text-gray-900 mb-1">Court Forms</h1>

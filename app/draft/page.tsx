@@ -94,7 +94,7 @@ export default function DraftPage() {
   const tmpl = template ? TEMPLATES[template] : null
 
   return (
-    <div className="flex flex-row min-h-screen">
+    <div style={{display:"flex",flexDirection:"row",minHeight:"100vh"}}>
       <Sidebar />
       <main className="flex-1 p-8 max-w-4xl">
         <h1 className="text-2xl font-bold text-gray-900 mb-1">Contract Drafter</h1>

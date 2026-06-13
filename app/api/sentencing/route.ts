@@ -2,10 +2,9 @@ import { auth } from "@clerk/nextjs/server"
 import { NextRequest, NextResponse } from "next/server"
 import { apiFetch } from "@/lib/api"
 import { sentencingSchema } from "@/lib/schemas"
-
 export async function POST(req: NextRequest) {
   try {
-    const { getToken } = auth()
+    const { getToken } = await auth()
     const token = await getToken()
     if (!token) return NextResponse.json({ error: "Unauthorised" }, { status: 401 })
     const body = await req.json()

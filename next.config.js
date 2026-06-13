@@ -1,6 +1,5 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  // Security headers
   async headers() {
     return [
       {
@@ -14,11 +13,13 @@ const nextConfig = {
             key: 'Content-Security-Policy',
             value: [
               "default-src 'self'",
-              "script-src 'self' 'unsafe-eval' 'unsafe-inline' https://clerk.com https://*.clerk.accounts.dev",
-              "style-src 'self' 'unsafe-inline'",
+              "script-src 'self' 'unsafe-eval' 'unsafe-inline' https://clerk.com https://*.clerk.accounts.dev https://*.clerk.com https://*.amaryllissuccess.co.zw https://challenges.cloudflare.com https://www.google.com https://www.gstatic.com",
+              "style-src 'self' 'unsafe-inline' https://*.clerk.com",
               "img-src 'self' data: https:",
-              "font-src 'self'",
-              "connect-src 'self' https://api.lexizw.com https://*.clerk.accounts.dev",
+              "font-src 'self' https://*.clerk.com",
+              "connect-src 'self' https://api.lexizw.com https://*.clerk.accounts.dev https://*.clerk.com https://*.amaryllissuccess.co.zw https://lexizw-backend-production.up.railway.app",
+              "worker-src 'self' blob:",
+              "frame-src 'self' https://challenges.cloudflare.com https://www.google.com https://*.clerk.com",
               "frame-ancestors 'none'",
             ].join('; '),
           },
@@ -26,14 +27,9 @@ const nextConfig = {
       },
     ];
   },
-
-  // Ensure server-only env vars are never bundled into client
-  // Any var without NEXT_PUBLIC_ prefix stays server-side
   env: {},
-
   experimental: {
-    serverActions: { allowedOrigins: ['lexizw.vercel.app', 'lexizw.com'] },
+    serverActions: { allowedOrigins: ['lexizw.vercel.app', 'lexizw.amaryllissuccess.co.zw'] },
   },
 };
-
 module.exports = nextConfig;

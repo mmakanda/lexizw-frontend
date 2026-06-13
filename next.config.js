@@ -17,7 +17,7 @@ const nextConfig = {
               "style-src 'self' 'unsafe-inline' https://*.clerk.com",
               "img-src 'self' data: https:",
               "font-src 'self' https://*.clerk.com",
-              "connect-src 'self' https://api.lexizw.com https://*.clerk.accounts.dev https://*.clerk.com https://*.amaryllissuccess.co.zw https://lexizw-backend-production.up.railway.app",
+              "connect-src 'self' https://*.clerk.accounts.dev https://*.clerk.com https://*.amaryllissuccess.co.zw https://lexizw-backend-production.up.railway.app",
               "worker-src 'self' blob:",
               "frame-src 'self' https://challenges.cloudflare.com https://www.google.com https://*.clerk.com",
               "frame-ancestors 'none'",
@@ -29,7 +29,7 @@ const nextConfig = {
   },
   env: {},
   experimental: {
-    serverActions: { allowedOrigins: ['lexizw.vercel.app', 'lexizw.amaryllissuccess.co.zw'] },
+    serverActions: { allowedOrigins: ['lexizw.amaryllissuccess.co.zw'] },
   },
 };
 module.exports = nextConfig;

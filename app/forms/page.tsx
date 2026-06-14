@@ -45,23 +45,23 @@ const FORM_TYPES: Record<string, {
   notice_of_motion: {
     label: "Notice of Motion", court: "High Court of Zimbabwe", tag: "HC",
     fields: [
-      { key: "applicant_name",   label: "Applicant Name", required: true },
-      { key: "respondent_name",  label: "Respondent Name", required: true },
-      { key: "case_number",      label: "Case Number" },
-      { key: "relief_sought",    label: "Relief Sought", required: true, rows: 3 },
-      { key: "return_date",      label: "Return Date", type: "date" },
-      { key: "practitioner",     label: "Legal Practitioner" },
+      { key: "applicant_name",  label: "Applicant Name", required: true },
+      { key: "respondent_name", label: "Respondent Name", required: true },
+      { key: "case_number",     label: "Case Number" },
+      { key: "relief_sought",   label: "Relief Sought", required: true, rows: 3 },
+      { key: "return_date",     label: "Return Date", type: "date" },
+      { key: "practitioner",    label: "Legal Practitioner" },
     ],
   },
   chamber_application: {
     label: "Chamber Application", court: "High Court of Zimbabwe", tag: "HC",
     fields: [
-      { key: "applicant_name",   label: "Applicant Name", required: true },
-      { key: "respondent_name",  label: "Respondent Name" },
-      { key: "case_number",      label: "Case Number" },
-      { key: "urgency_grounds",  label: "Grounds for Urgency", required: true, rows: 3 },
-      { key: "relief_sought",    label: "Relief Sought", required: true, rows: 3 },
-      { key: "practitioner",     label: "Legal Practitioner", required: true },
+      { key: "applicant_name",  label: "Applicant Name", required: true },
+      { key: "respondent_name", label: "Respondent Name" },
+      { key: "case_number",     label: "Case Number" },
+      { key: "urgency_grounds", label: "Grounds for Urgency", required: true, rows: 3 },
+      { key: "relief_sought",   label: "Relief Sought", required: true, rows: 3 },
+      { key: "practitioner",    label: "Legal Practitioner", required: true },
     ],
   },
   mitigation_letter: {
@@ -90,14 +90,27 @@ const I: React.CSSProperties = {
 }
 
 export default function FormsPage() {
-  const [formType, setFormType] = useState<string|null>(null)
-  const [fields, setFields]     = useState<Record<string,string>>({})
-  const [loading, setLoading]   = useState(false)
-  const [result, setResult]     = useState<any>(null)
-  const [error, setError]       = useState<string|null>(null)
+  const [formType, setFormType]       = useState<string|null>(null)
+  const [fields, setFields]           = useState<Record<string,string>>({})
+  const [loading, setLoading]         = useState(false)
+  const [downloading, setDownloading] = useState(false)
+  const [result, setResult]           = useState<any>(null)
+  const [error, setError]             = useState<string|null>(null)
+  const [validationErrors, setValidationErrors] = useState<Record<string,string>>({})
+
+  function validate() {
+    if (!formType) return false
+    const tmpl = FORM_TYPES[formType]
+    const errs: Record<string,string> = {}
+    tmpl.fields.forEach(f => {
+      if (f.required && !fields[f.key]?.trim()) errs[f.key] = `${f.label} is required`
+    })
+    setValidationErrors(errs)
+    return Object.keys(errs).length === 0
+  }
 
   async function generate() {
-    if (!formType) return
+    if (!validate()) return
     setLoading(true); setError(null)
     try {
       const res = await fetch("/api/forms", {
@@ -111,30 +124,40 @@ export default function FormsPage() {
     finally { setLoading(false) }
   }
 
+  async function downloadDoc(fmt: "docx" | "pdf") {
+    if (!result?.form_id) return
+    setDownloading(true)
+    try {
+      const res = await fetch(`/api/download?id=${result.form_id}&type=forms&fmt=${fmt}`)
+      if (!res.ok) throw new Error("Download failed")
+      const blob = await res.blob()
+      const url = URL.createObjectURL(blob)
+      const a = document.createElement("a"); a.href = url; a.download = `form.${fmt}`; a.click()
+      URL.revokeObjectURL(url)
+    } catch (err: any) { setError(err.message) }
+    finally { setDownloading(false) }
+  }
+
   const tmpl = formType ? FORM_TYPES[formType] : null
 
   return (
     <div style={{ display: "flex", flexDirection: "row", minHeight: "100vh", background: "#0A0F1E" }}>
       <Sidebar />
-      <main style={{ flex: 1, padding: "2.5rem 3rem", maxWidth: "960px" }}>
+      <main style={{ flex: 1, padding: "clamp(1.5rem, 4vw, 2.5rem) clamp(1rem, 4vw, 3rem)", maxWidth: "960px", overflowX: "hidden" }}>
 
         <div style={{ marginBottom: "2rem" }}>
           <div style={{ fontSize: "10px", fontWeight: 600, letterSpacing: "0.14em", textTransform: "uppercase" as const, color: "#4A5568", marginBottom: "6px" }}>Court Documents</div>
-          <h1 style={{ fontFamily: "Georgia, serif", fontSize: "26px", fontWeight: 700, color: "#EEE9DC", margin: "0 0 4px" }}>Court Forms</h1>
+          <h1 style={{ fontFamily: "Georgia, serif", fontSize: "clamp(20px, 4vw, 26px)", fontWeight: 700, color: "#EEE9DC", margin: "0 0 4px" }}>Court Forms</h1>
           <p style={{ fontSize: "13px", color: "#8B9AB0" }}>Generate court-ready documents compliant with Zimbabwe High Court Rules and Magistrates' Court Act</p>
         </div>
 
         {!formType ? (
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "12px" }}>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: "12px" }}>
             {Object.entries(FORM_TYPES).map(([key, t]) => {
               const tagStyle = TAG_COLORS[t.tag] || TAG_COLORS.ALL
               return (
-                <button key={key} onClick={() => { setFormType(key); setFields({}); setResult(null); setError(null) }}
-                  style={{
-                    background: "#1A2235", border: "0.5px solid rgba(255,255,255,0.06)",
-                    borderRadius: "14px", padding: "20px", cursor: "pointer",
-                    textAlign: "left" as const, transition: "all 0.18s",
-                  }}
+                <button key={key} onClick={() => { setFormType(key); setFields({}); setResult(null); setError(null); setValidationErrors({}) }}
+                  style={{ background: "#1A2235", border: "0.5px solid rgba(255,255,255,0.06)", borderRadius: "14px", padding: "20px", cursor: "pointer", textAlign: "left" as const, transition: "all 0.18s" }}
                   onMouseEnter={e => { e.currentTarget.style.borderColor = "rgba(201,168,76,0.3)"; e.currentTarget.style.transform = "translateY(-1px)" }}
                   onMouseLeave={e => { e.currentTarget.style.borderColor = "rgba(255,255,255,0.06)"; e.currentTarget.style.transform = "translateY(0)" }}
                 >
@@ -146,7 +169,9 @@ export default function FormsPage() {
                   </div>
                   <div style={{ fontFamily: "Georgia, serif", fontSize: "14px", fontWeight: 600, color: "#EEE9DC", marginBottom: "4px", lineHeight: 1.3 }}>{t.label}</div>
                   <div style={{ fontSize: "11px", color: "#4A5568", marginBottom: "12px" }}>{t.court}</div>
-                  <span style={{ fontSize: "9px", fontWeight: 600, letterSpacing: "0.1em", textTransform: "uppercase" as const, padding: "3px 8px", borderRadius: "4px", background: tagStyle.bg, color: tagStyle.color, border: `0.5px solid ${tagStyle.border}` }}>{t.tag === "HC" ? "High Court" : t.tag === "MAG" ? "Magistrates'" : "All Courts"}</span>
+                  <span style={{ fontSize: "9px", fontWeight: 600, letterSpacing: "0.1em", textTransform: "uppercase" as const, padding: "3px 8px", borderRadius: "4px", background: tagStyle.bg, color: tagStyle.color, border: `0.5px solid ${tagStyle.border}` }}>
+                    {t.tag === "HC" ? "High Court" : t.tag === "MAG" ? "Magistrates'" : "All Courts"}
+                  </span>
                 </button>
               )
             })}
@@ -157,52 +182,54 @@ export default function FormsPage() {
               <ArrowLeft size={13} /> Back to forms
             </button>
 
-            <div style={{ background: "#1A2235", border: "0.5px solid rgba(201,168,76,0.18)", borderRadius: "16px", padding: "28px" }}>
+            <div style={{ background: "#1A2235", border: "0.5px solid rgba(201,168,76,0.18)", borderRadius: "16px", padding: "clamp(16px, 4vw, 28px)" }}>
               <div style={{ marginBottom: "20px" }}>
                 <div style={{ fontFamily: "Georgia, serif", fontSize: "18px", fontWeight: 600, color: "#EEE9DC", marginBottom: "4px" }}>{tmpl?.label}</div>
                 <div style={{ fontSize: "12px", color: "#4A5568" }}>{tmpl?.court}</div>
               </div>
 
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px 20px", marginBottom: "20px" }}>
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: "16px 20px", marginBottom: "20px" }}>
                 {tmpl?.fields.map(f => (
                   <div key={f.key} style={{ gridColumn: f.rows ? "1 / -1" : undefined }}>
-                    <label style={{ fontSize: "10px", fontWeight: 600, letterSpacing: "0.1em", textTransform: "uppercase" as const, color: "#8B9AB0", display: "block", marginBottom: "6px" }}>
+                    <label style={{ fontSize: "10px", fontWeight: 600, letterSpacing: "0.1em", textTransform: "uppercase" as const, color: validationErrors[f.key] ? "#D85A30" : "#8B9AB0", display: "block", marginBottom: "6px" }}>
                       {f.label}{f.required && <span style={{ color: "#D85A30", marginLeft: "3px" }}>*</span>}
                     </label>
                     {f.rows ? (
-                      <textarea rows={f.rows} style={{ ...I, resize: "vertical" as const }} value={fields[f.key] || ""} onChange={e => setFields(p => ({ ...p, [f.key]: e.target.value }))} />
+                      <textarea rows={f.rows} style={{ ...I, resize: "vertical" as const, borderColor: validationErrors[f.key] ? "rgba(216,90,48,0.5)" : "rgba(255,255,255,0.06)" }}
+                        value={fields[f.key] || ""}
+                        onChange={e => { setFields(p => ({ ...p, [f.key]: e.target.value })); if (validationErrors[f.key]) setValidationErrors(p => { const n={...p}; delete n[f.key]; return n }) }}
+                      />
                     ) : (
-                      <input type={f.type || "text"} style={I} value={fields[f.key] || ""} onChange={e => setFields(p => ({ ...p, [f.key]: e.target.value }))} />
+                      <input type={f.type || "text"} style={{ ...I, borderColor: validationErrors[f.key] ? "rgba(216,90,48,0.5)" : "rgba(255,255,255,0.06)" }}
+                        value={fields[f.key] || ""}
+                        onChange={e => { setFields(p => ({ ...p, [f.key]: e.target.value })); if (validationErrors[f.key]) setValidationErrors(p => { const n={...p}; delete n[f.key]; return n }) }}
+                      />
                     )}
+                    {validationErrors[f.key] && <p style={{ fontSize: "11px", color: "#D85A30", marginTop: "4px" }}>{validationErrors[f.key]}</p>}
                   </div>
                 ))}
               </div>
 
-              {error && (
-                <div style={{ display: "flex", alignItems: "center", gap: "8px", padding: "10px 14px", background: "rgba(216,90,48,0.08)", border: "0.5px solid rgba(216,90,48,0.25)", borderRadius: "8px", color: "#E8845A", fontSize: "13px", marginBottom: "16px" }}>
-                  <AlertCircle size={14} /> {error}
-                </div>
-              )}
+              {error && <div style={{ display: "flex", alignItems: "center", gap: "8px", padding: "10px 14px", background: "rgba(216,90,48,0.08)", border: "0.5px solid rgba(216,90,48,0.25)", borderRadius: "8px", color: "#E8845A", fontSize: "13px", marginBottom: "16px" }}><AlertCircle size={14} />{error}</div>}
 
-              <button onClick={generate} disabled={loading} style={{
-                background: "#C9A84C", color: "#0A0F1E", fontFamily: "Inter, sans-serif",
-                fontSize: "13px", fontWeight: 600, border: "none", borderRadius: "10px",
-                padding: "12px 24px", cursor: loading ? "not-allowed" : "pointer",
-                display: "inline-flex", alignItems: "center", gap: "8px", opacity: loading ? 0.7 : 1,
-              }}>
-                <Sparkles size={15} />
-                {loading ? "Generating…" : "Generate Court Form"}
+              <button onClick={generate} disabled={loading} style={{ background: "#C9A84C", color: "#0A0F1E", fontFamily: "Inter, sans-serif", fontSize: "13px", fontWeight: 600, border: "none", borderRadius: "10px", padding: "12px 24px", cursor: loading ? "not-allowed" : "pointer", display: "inline-flex", alignItems: "center", gap: "8px", opacity: loading ? 0.7 : 1 }}>
+                <Sparkles size={15} />{loading ? "Generating…" : "Generate Court Form"}
               </button>
             </div>
 
             {result && (
               <div style={{ marginTop: "20px" }}>
                 <div style={{ background: "#141C2E", border: "0.5px solid rgba(201,168,76,0.18)", borderRadius: "14px", padding: "24px 26px" }}>
-                  <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "16px" }}>
+                  <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "16px", flexWrap: "wrap" as const, gap: "10px" }}>
                     <div style={{ fontFamily: "Georgia, serif", fontSize: "15px", fontWeight: 600, color: "#EEE9DC" }}>Generated Form</div>
-                    <a href={`https://lexizw-backend-production.up.railway.app${result.download_url}`} style={{ display: "inline-flex", alignItems: "center", gap: "6px", fontSize: "12px", fontWeight: 500, color: "#C9A84C", background: "rgba(201,168,76,0.1)", border: "0.5px solid rgba(201,168,76,0.2)", borderRadius: "8px", padding: "7px 14px", textDecoration: "none" }}>
-                      <Download size={13} /> Download PDF
-                    </a>
+                    <div style={{ display: "flex", gap: "8px" }}>
+                      <button onClick={() => downloadDoc("docx")} disabled={downloading} style={{ display: "inline-flex", alignItems: "center", gap: "6px", fontSize: "12px", fontWeight: 500, color: "#C9A84C", background: "rgba(201,168,76,0.1)", border: "0.5px solid rgba(201,168,76,0.2)", borderRadius: "8px", padding: "7px 14px", cursor: "pointer" }}>
+                        <Download size={13} />{downloading ? "…" : "DOCX"}
+                      </button>
+                      <button onClick={() => downloadDoc("pdf")} disabled={downloading} style={{ display: "inline-flex", alignItems: "center", gap: "6px", fontSize: "12px", fontWeight: 500, color: "#8B9AB0", background: "rgba(255,255,255,0.04)", border: "0.5px solid rgba(255,255,255,0.08)", borderRadius: "8px", padding: "7px 14px", cursor: "pointer" }}>
+                        <Download size={13} />PDF
+                      </button>
+                    </div>
                   </div>
                   <pre style={{ fontSize: "12px", color: "#8B9AB0", whiteSpace: "pre-wrap" as const, fontFamily: "monospace", background: "#0A0F1E", padding: "16px", borderRadius: "8px", maxHeight: "400px", overflowY: "auto" as const, border: "0.5px solid rgba(255,255,255,0.06)" }}>
                     {result.generated_text || result.content}

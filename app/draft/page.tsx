@@ -72,15 +72,30 @@ const I: React.CSSProperties = {
 }
 
 export default function DraftPage() {
-  const [template, setTemplate] = useState<string|null>(null)
-  const [fields, setFields]     = useState<Record<string,string>>({})
-  const [language, setLanguage] = useState("en")
-  const [loading, setLoading]   = useState(false)
-  const [result, setResult]     = useState<any>(null)
-  const [error, setError]       = useState<string|null>(null)
+  const [template, setTemplate]   = useState<string|null>(null)
+  const [fields, setFields]       = useState<Record<string,string>>({})
+  const [language, setLanguage]   = useState("en")
+  const [loading, setLoading]     = useState(false)
+  const [downloading, setDownloading] = useState(false)
+  const [result, setResult]       = useState<any>(null)
+  const [error, setError]         = useState<string|null>(null)
+  const [validationErrors, setValidationErrors] = useState<Record<string,string>>({})
+
+  function validate() {
+    if (!template) return false
+    const tmpl = TEMPLATES[template]
+    const errs: Record<string,string> = {}
+    tmpl.fields.forEach(f => {
+      if (f.required && !fields[f.key]?.trim()) {
+        errs[f.key] = `${f.label} is required`
+      }
+    })
+    setValidationErrors(errs)
+    return Object.keys(errs).length === 0
+  }
 
   async function generate() {
-    if (!template) return
+    if (!validate()) return
     setLoading(true); setError(null)
     try {
       const res = await fetch("/api/draft", {
@@ -94,28 +109,39 @@ export default function DraftPage() {
     finally { setLoading(false) }
   }
 
+  async function downloadDoc(fmt: "docx" | "pdf") {
+    if (!result?.draft_id) return
+    setDownloading(true)
+    try {
+      const res = await fetch(`/api/download?id=${result.draft_id}&type=draft&fmt=${fmt}`)
+      if (!res.ok) throw new Error("Download failed")
+      const blob = await res.blob()
+      const url = URL.createObjectURL(blob)
+      const a = document.createElement("a")
+      a.href = url; a.download = `draft.${fmt}`; a.click()
+      URL.revokeObjectURL(url)
+    } catch (err: any) { setError(err.message) }
+    finally { setDownloading(false) }
+  }
+
   const tmpl = template ? TEMPLATES[template] : null
 
   return (
     <div style={{ display: "flex", flexDirection: "row", minHeight: "100vh", background: "#0A0F1E" }}>
       <Sidebar />
-      <main style={{ flex: 1, padding: "2.5rem 3rem", maxWidth: "900px" }}>
+      <main style={{ flex: 1, padding: "clamp(1.5rem, 4vw, 2.5rem) clamp(1rem, 4vw, 3rem)", maxWidth: "900px", overflowX: "hidden" }}>
 
         <div style={{ marginBottom: "2rem" }}>
           <div style={{ fontSize: "10px", fontWeight: 600, letterSpacing: "0.14em", textTransform: "uppercase" as const, color: "#4A5568", marginBottom: "6px" }}>AI Document Generation</div>
-          <h1 style={{ fontFamily: "Georgia, serif", fontSize: "26px", fontWeight: 700, color: "#EEE9DC", margin: "0 0 4px", letterSpacing: "-0.01em" }}>Contract Drafter</h1>
+          <h1 style={{ fontFamily: "Georgia, serif", fontSize: "clamp(20px, 4vw, 26px)", fontWeight: 700, color: "#EEE9DC", margin: "0 0 4px" }}>Contract Drafter</h1>
           <p style={{ fontSize: "13px", color: "#8B9AB0" }}>Generate Zimbabwe-law compliant documents instantly</p>
         </div>
 
         {!template ? (
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" }}>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))", gap: "12px" }}>
             {Object.entries(TEMPLATES).map(([key, t]) => (
-              <button key={key} onClick={() => { setTemplate(key); setFields({}); setResult(null); setError(null) }}
-                style={{
-                  background: "#1A2235", border: "0.5px solid rgba(255,255,255,0.06)",
-                  borderRadius: "14px", padding: "22px", cursor: "pointer",
-                  textAlign: "left" as const, transition: "all 0.18s", position: "relative" as const, overflow: "hidden" as const,
-                }}
+              <button key={key} onClick={() => { setTemplate(key); setFields({}); setResult(null); setError(null); setValidationErrors({}) }}
+                style={{ background: "#1A2235", border: "0.5px solid rgba(255,255,255,0.06)", borderRadius: "14px", padding: "22px", cursor: "pointer", textAlign: "left" as const, transition: "all 0.18s" }}
                 onMouseEnter={e => { e.currentTarget.style.borderColor = "rgba(201,168,76,0.35)"; e.currentTarget.style.transform = "translateY(-1px)" }}
                 onMouseLeave={e => { e.currentTarget.style.borderColor = "rgba(255,255,255,0.06)"; e.currentTarget.style.transform = "translateY(0)" }}
               >
@@ -123,15 +149,11 @@ export default function DraftPage() {
                   <div style={{ width: "40px", height: "40px", borderRadius: "10px", background: "rgba(201,168,76,0.12)", display: "flex", alignItems: "center", justifyContent: "center" }}>
                     <FileText size={18} color="#E8C97A" />
                   </div>
-                  <div style={{ width: "26px", height: "26px", borderRadius: "6px", background: "rgba(255,255,255,0.04)", border: "0.5px solid rgba(255,255,255,0.06)", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                    <ChevronRight size={14} color="#4A5568" />
-                  </div>
+                  <ChevronRight size={16} color="#4A5568" />
                 </div>
                 <div style={{ fontFamily: "Georgia, serif", fontSize: "15px", fontWeight: 600, color: "#EEE9DC", marginBottom: "5px" }}>{t.label}</div>
                 <div style={{ fontSize: "12px", color: "#8B9AB0", lineHeight: 1.5, marginBottom: "14px" }}>{t.description}</div>
-                <div style={{ paddingTop: "12px", borderTop: "0.5px solid rgba(255,255,255,0.06)" }}>
-                  <span style={{ fontSize: "9px", fontWeight: 600, letterSpacing: "0.1em", textTransform: "uppercase" as const, padding: "3px 8px", borderRadius: "4px", background: "rgba(201,168,76,0.1)", color: "#C9A84C", border: "0.5px solid rgba(201,168,76,0.2)" }}>{t.tag}</span>
-                </div>
+                <span style={{ fontSize: "9px", fontWeight: 600, letterSpacing: "0.1em", textTransform: "uppercase" as const, padding: "3px 8px", borderRadius: "4px", background: "rgba(201,168,76,0.1)", color: "#C9A84C", border: "0.5px solid rgba(201,168,76,0.2)" }}>{t.tag}</span>
               </button>
             ))}
           </div>
@@ -141,16 +163,20 @@ export default function DraftPage() {
               <ArrowLeft size={13} /> Back to templates
             </button>
 
-            <div style={{ background: "#1A2235", border: "0.5px solid rgba(201,168,76,0.18)", borderRadius: "16px", padding: "28px" }}>
+            <div style={{ background: "#1A2235", border: "0.5px solid rgba(201,168,76,0.18)", borderRadius: "16px", padding: "clamp(16px, 4vw, 28px)" }}>
               <div style={{ fontFamily: "Georgia, serif", fontSize: "18px", fontWeight: 600, color: "#EEE9DC", marginBottom: "20px" }}>{tmpl?.label}</div>
 
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px 20px", marginBottom: "20px" }}>
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: "16px 20px", marginBottom: "20px" }}>
                 {tmpl?.fields.map(f => (
                   <div key={f.key}>
-                    <label style={{ fontSize: "10px", fontWeight: 600, letterSpacing: "0.1em", textTransform: "uppercase" as const, color: "#8B9AB0", display: "block", marginBottom: "6px" }}>
+                    <label style={{ fontSize: "10px", fontWeight: 600, letterSpacing: "0.1em", textTransform: "uppercase" as const, color: validationErrors[f.key] ? "#D85A30" : "#8B9AB0", display: "block", marginBottom: "6px" }}>
                       {f.label}{f.required && <span style={{ color: "#D85A30", marginLeft: "3px" }}>*</span>}
                     </label>
-                    <input type={f.type || "text"} style={I} value={fields[f.key] || ""} onChange={e => setFields(p => ({ ...p, [f.key]: e.target.value }))} />
+                    <input type={f.type || "text"} style={{ ...I, borderColor: validationErrors[f.key] ? "rgba(216,90,48,0.5)" : "rgba(255,255,255,0.06)" }}
+                      value={fields[f.key] || ""}
+                      onChange={e => { setFields(p => ({ ...p, [f.key]: e.target.value })); if (validationErrors[f.key]) setValidationErrors(p => { const n = {...p}; delete n[f.key]; return n }) }}
+                    />
+                    {validationErrors[f.key] && <p style={{ fontSize: "11px", color: "#D85A30", marginTop: "4px" }}>{validationErrors[f.key]}</p>}
                   </div>
                 ))}
               </div>
@@ -163,47 +189,35 @@ export default function DraftPage() {
                 </select>
               </div>
 
-              {error && (
-                <div style={{ display: "flex", alignItems: "center", gap: "8px", padding: "10px 14px", background: "rgba(216,90,48,0.08)", border: "0.5px solid rgba(216,90,48,0.25)", borderRadius: "8px", color: "#E8845A", fontSize: "13px", marginBottom: "16px" }}>
-                  <AlertCircle size={14} /> {error}
-                </div>
-              )}
+              {error && <div style={{ display: "flex", alignItems: "center", gap: "8px", padding: "10px 14px", background: "rgba(216,90,48,0.08)", border: "0.5px solid rgba(216,90,48,0.25)", borderRadius: "8px", color: "#E8845A", fontSize: "13px", marginBottom: "16px" }}><AlertCircle size={14} />{error}</div>}
 
-              <button onClick={generate} disabled={loading} style={{
-                background: "#C9A84C", color: "#0A0F1E", fontFamily: "Inter, sans-serif",
-                fontSize: "13px", fontWeight: 600, border: "none", borderRadius: "10px",
-                padding: "12px 24px", cursor: loading ? "not-allowed" : "pointer",
-                display: "inline-flex", alignItems: "center", gap: "8px", opacity: loading ? 0.7 : 1,
-              }}>
-                <Sparkles size={15} />
-                {loading ? "Generating…" : "Generate Document"}
+              <button onClick={generate} disabled={loading} style={{ background: "#C9A84C", color: "#0A0F1E", fontFamily: "Inter, sans-serif", fontSize: "13px", fontWeight: 600, border: "none", borderRadius: "10px", padding: "12px 24px", cursor: loading ? "not-allowed" : "pointer", display: "inline-flex", alignItems: "center", gap: "8px", opacity: loading ? 0.7 : 1 }}>
+                <Sparkles size={15} />{loading ? "Generating…" : "Generate Document"}
               </button>
             </div>
 
             {result && (
               <div style={{ marginTop: "20px" }}>
                 <div style={{ background: "#141C2E", border: "0.5px solid rgba(201,168,76,0.18)", borderRadius: "14px", padding: "24px 26px" }}>
-                  <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "16px" }}>
+                  <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "16px", flexWrap: "wrap" as const, gap: "10px" }}>
                     <div style={{ fontFamily: "Georgia, serif", fontSize: "15px", fontWeight: 600, color: "#EEE9DC" }}>Generated Document</div>
-                    <a href={`https://lexizw-backend-production.up.railway.app${result.download_url}`} style={{ display: "inline-flex", alignItems: "center", gap: "6px", fontSize: "12px", fontWeight: 500, color: "#C9A84C", background: "rgba(201,168,76,0.1)", border: "0.5px solid rgba(201,168,76,0.2)", borderRadius: "8px", padding: "7px 14px", textDecoration: "none" }}>
-                      <Download size={13} /> Download DOCX
-                    </a>
+                    <div style={{ display: "flex", gap: "8px" }}>
+                      <button onClick={() => downloadDoc("docx")} disabled={downloading} style={{ display: "inline-flex", alignItems: "center", gap: "6px", fontSize: "12px", fontWeight: 500, color: "#C9A84C", background: "rgba(201,168,76,0.1)", border: "0.5px solid rgba(201,168,76,0.2)", borderRadius: "8px", padding: "7px 14px", cursor: "pointer" }}>
+                        <Download size={13} />{downloading ? "…" : "DOCX"}
+                      </button>
+                      <button onClick={() => downloadDoc("pdf")} disabled={downloading} style={{ display: "inline-flex", alignItems: "center", gap: "6px", fontSize: "12px", fontWeight: 500, color: "#8B9AB0", background: "rgba(255,255,255,0.04)", border: "0.5px solid rgba(255,255,255,0.08)", borderRadius: "8px", padding: "7px 14px", cursor: "pointer" }}>
+                        <Download size={13} />PDF
+                      </button>
+                    </div>
                   </div>
-                  <pre style={{ fontSize: "12px", color: "#8B9AB0", whiteSpace: "pre-wrap" as const, fontFamily: "monospace", background: "#0A0F1E", padding: "16px", borderRadius: "8px", maxHeight: "400px", overflowY: "auto" as const, border: "0.5px solid rgba(255,255,255,0.06)" }}>
-                    {result.generated_text}
-                  </pre>
+                  <pre style={{ fontSize: "12px", color: "#8B9AB0", whiteSpace: "pre-wrap" as const, fontFamily: "monospace", background: "#0A0F1E", padding: "16px", borderRadius: "8px", maxHeight: "400px", overflowY: "auto" as const, border: "0.5px solid rgba(255,255,255,0.06)" }}>{result.generated_text}</pre>
                 </div>
-
-                <div style={{ background: "rgba(29,158,117,0.06)", border: "0.5px solid rgba(29,158,117,0.2)", borderRadius: "12px", padding: "18px 22px", marginTop: "12px" }}>
-                  <div style={{ fontSize: "10px", fontWeight: 600, letterSpacing: "0.1em", textTransform: "uppercase" as const, color: "#1D9E75", marginBottom: "8px" }}>Plain English Summary</div>
-                  <p style={{ fontSize: "13px", color: "#8B9AB0", margin: 0, lineHeight: 1.6 }}>{result.plain_summary}</p>
-                  {result.plain_summary_shona && (
-                    <>
-                      <div style={{ fontSize: "10px", fontWeight: 600, letterSpacing: "0.1em", textTransform: "uppercase" as const, color: "#1D9E75", margin: "14px 0 8px" }}>Shona Summary (chiShona)</div>
-                      <p style={{ fontSize: "13px", color: "#8B9AB0", margin: 0, lineHeight: 1.6 }}>{result.plain_summary_shona}</p>
-                    </>
-                  )}
-                </div>
+                {result.plain_summary && (
+                  <div style={{ background: "rgba(29,158,117,0.06)", border: "0.5px solid rgba(29,158,117,0.2)", borderRadius: "12px", padding: "18px 22px", marginTop: "12px" }}>
+                    <div style={{ fontSize: "10px", fontWeight: 600, letterSpacing: "0.1em", textTransform: "uppercase" as const, color: "#1D9E75", marginBottom: "8px" }}>Plain English Summary</div>
+                    <p style={{ fontSize: "13px", color: "#8B9AB0", margin: 0, lineHeight: 1.6 }}>{result.plain_summary}</p>
+                  </div>
+                )}
                 <p style={{ fontSize: "10px", color: "#4A5568", marginTop: "10px" }}>⚠ AI-generated. Review with a qualified Zimbabwean lawyer before execution.</p>
               </div>
             )}

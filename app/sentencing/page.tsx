@@ -25,6 +25,7 @@ export default function SentencingPage() {
 
   const { register, handleSubmit, formState: { errors }, reset } = useForm<SentencingInput>({
     resolver: zodResolver(sentencingSchema),
+    defaultValues: { is_first_offender: true },
   })
 
   function toggleFactor(list: string[], setList: (v: string[]) => void, val: string) {
@@ -34,12 +35,13 @@ export default function SentencingPage() {
   async function onSubmit(data: SentencingInput) {
     setLoading(true); setError(null); setResult(null)
     try {
+      const payload = { ...data, mitigating_factors: mitigating, aggravating_factors: aggravating }
       const res = await fetch("/api/sentencing", {
         method: "POST", headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ...data, mitigating_factors: mitigating, aggravating_factors: aggravating }),
+        body: JSON.stringify(payload),
       })
       const json = await res.json()
-      if (!res.ok) throw new Error(json.error || "Prediction failed")
+      if (!res.ok) throw new Error(json.error || `Request failed (${res.status})`)
       setResult(json)
     } catch (err: any) { setError(err.message) }
     finally { setLoading(false) }
@@ -50,11 +52,11 @@ export default function SentencingPage() {
   return (
     <div style={{ display: "flex", flexDirection: "row", minHeight: "100vh", background: "#0A0F1E" }}>
       <Sidebar />
-      <main style={{ flex: 1, padding: "2.5rem 3rem", maxWidth: "960px" }}>
+      <main style={{ flex: 1, padding: "clamp(1.5rem, 4vw, 2.5rem) clamp(1rem, 4vw, 3rem)", overflowX: "hidden" }}>
 
         <div style={{ marginBottom: "2rem" }}>
           <div style={{ fontSize: "10px", fontWeight: 600, letterSpacing: "0.14em", textTransform: "uppercase" as const, color: "#4A5568", marginBottom: "6px" }}>Sentencing Predictor</div>
-          <h1 style={{ fontFamily: "Georgia, serif", fontSize: "26px", fontWeight: 700, color: "#EEE9DC", margin: "0 0 4px" }}>Predict Sentence Range</h1>
+          <h1 style={{ fontFamily: "Georgia, serif", fontSize: "clamp(20px, 4vw, 26px)", fontWeight: 700, color: "#EEE9DC", margin: "0 0 4px" }}>Predict Sentence Range</h1>
           <p style={{ fontSize: "13px", color: "#8B9AB0" }}>Based on Zimbabwe Magistrates' Court precedent · AI-assisted analysis</p>
           <div style={{ display: "flex", alignItems: "center", gap: "8px", background: "rgba(216,90,48,0.06)", border: "0.5px solid rgba(216,90,48,0.2)", borderRadius: "8px", padding: "10px 14px", marginTop: "14px" }}>
             <AlertTriangle size={14} color="#D85A30" />
@@ -63,7 +65,7 @@ export default function SentencingPage() {
         </div>
 
         <form onSubmit={handleSubmit(onSubmit)}>
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "24px" }}>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))", gap: "24px" }}>
 
             {/* Left column */}
             <div style={{ display: "flex", flexDirection: "column", gap: "18px" }}>
@@ -71,10 +73,10 @@ export default function SentencingPage() {
                 <div style={{ fontSize: "10px", fontWeight: 600, letterSpacing: "0.1em", textTransform: "uppercase" as const, color: "#8B9AB0", marginBottom: "16px" }}>Offence Details</div>
 
                 <div style={{ marginBottom: "14px" }}>
-                  <label style={{ fontSize: "10px", fontWeight: 600, letterSpacing: "0.1em", textTransform: "uppercase" as const, color: "#8B9AB0", display: "block", marginBottom: "6px" }}>
+                  <label style={{ fontSize: "10px", fontWeight: 600, letterSpacing: "0.1em", textTransform: "uppercase" as const, color: errors.offence ? "#D85A30" : "#8B9AB0", display: "block", marginBottom: "6px" }}>
                     Offence <span style={{ color: "#D85A30" }}>*</span>
                   </label>
-                  <input {...register("offence")} style={I} placeholder="e.g. Theft, Assault, Unlawful Entry…" list="offence-list" />
+                  <input {...register("offence")} style={{ ...I, borderColor: errors.offence ? "rgba(216,90,48,0.5)" : "rgba(255,255,255,0.06)" }} placeholder="e.g. Theft, Assault, Unlawful Entry…" list="offence-list" />
                   <datalist id="offence-list">
                     {["Theft","Assault","Unlawful entry","Fraud","Robbery","Possession of dagga","Driving without a licence","Stock theft","Malicious damage to property","Murder","Rape"].map(o => <option key={o} value={o} />)}
                   </datalist>
@@ -82,20 +84,20 @@ export default function SentencingPage() {
                 </div>
 
                 <div style={{ marginBottom: "14px" }}>
-                  <label style={{ fontSize: "10px", fontWeight: 600, letterSpacing: "0.1em", textTransform: "uppercase" as const, color: "#8B9AB0", display: "block", marginBottom: "6px" }}>
+                  <label style={{ fontSize: "10px", fontWeight: 600, letterSpacing: "0.1em", textTransform: "uppercase" as const, color: errors.offence_details ? "#D85A30" : "#8B9AB0", display: "block", marginBottom: "6px" }}>
                     Case Facts <span style={{ color: "#D85A30" }}>*</span>
                   </label>
-                  <textarea {...register("offence_details")} style={{ ...I, minHeight: "90px", resize: "vertical" as const }} placeholder="Describe the facts: what was stolen, value, circumstances, how offence was committed…" />
+                  <textarea {...register("offence_details")} style={{ ...I, minHeight: "90px", resize: "vertical" as const, borderColor: errors.offence_details ? "rgba(216,90,48,0.5)" : "rgba(255,255,255,0.06)" }} placeholder="Describe the facts: what was stolen, value, circumstances, how offence was committed…" />
                   {errors.offence_details && <p style={{ fontSize: "11px", color: "#D85A30", marginTop: "4px" }}>{errors.offence_details.message}</p>}
                 </div>
 
-                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px", marginBottom: "14px" }}>
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" }}>
                   <div>
                     <label style={{ fontSize: "10px", fontWeight: 600, letterSpacing: "0.1em", textTransform: "uppercase" as const, color: "#8B9AB0", display: "block", marginBottom: "6px" }}>Value Involved (USD)</label>
-                    <input {...register("value_involved")} style={I} type="number" placeholder="0.00" />
+                    <input {...register("value_involved", { setValueAs: v => v === "" ? undefined : parseFloat(v) })} style={I} type="number" placeholder="0.00" />
                   </div>
                   <div style={{ display: "flex", alignItems: "center", gap: "8px", paddingTop: "22px" }}>
-                    <input {...register("is_first_offender")} type="checkbox" style={{ accentColor: "#1D9E75", width: "14px", height: "14px" }} defaultChecked />
+                    <input {...register("is_first_offender")} type="checkbox" style={{ accentColor: "#1D9E75", width: "14px", height: "14px" }} />
                     <label style={{ fontSize: "12px", color: "#8B9AB0" }}>First offender</label>
                   </div>
                 </div>
@@ -113,7 +115,7 @@ export default function SentencingPage() {
                         background: on ? "rgba(29,158,117,0.15)" : "rgba(29,158,117,0.06)",
                         color: on ? "#1D9E75" : "#8B9AB0",
                         border: on ? "0.5px solid rgba(29,158,117,0.4)" : "0.5px solid rgba(29,158,117,0.15)",
-                        fontWeight: on ? 500 : 400, transition: "all 0.12s",
+                        fontWeight: on ? 500 : 400,
                       }}>{f}</button>
                     )
                   })}
@@ -135,26 +137,23 @@ export default function SentencingPage() {
                         background: on ? "rgba(216,90,48,0.14)" : "rgba(216,90,48,0.06)",
                         color: on ? "#D85A30" : "#8B9AB0",
                         border: on ? "0.5px solid rgba(216,90,48,0.35)" : "0.5px solid rgba(216,90,48,0.15)",
-                        fontWeight: on ? 500 : 400, transition: "all 0.12s",
+                        fontWeight: on ? 500 : 400,
                       }}>{f}</button>
                     )
                   })}
                 </div>
               </div>
 
-              {/* Result panel */}
+              {/* Result */}
               {result && (
                 <div style={{ background: "#141C2E", border: "0.5px solid rgba(201,168,76,0.18)", borderRadius: "14px", padding: "24px 26px" }}>
                   <div style={{ fontSize: "10px", fontWeight: 600, letterSpacing: "0.12em", textTransform: "uppercase" as const, color: "#4A5568", marginBottom: "10px" }}>Predicted sentence range</div>
-                  <div style={{ fontFamily: "Georgia, serif", fontSize: "28px", fontWeight: 600, color: "#E8C97A", marginBottom: "6px" }}>{result.sentence_range || "—"}</div>
-                  <div style={{ fontSize: "12px", color: "#8B9AB0", marginBottom: "16px" }}>{result.offence_summary || ""}</div>
-
-                  {result.reasoning && (
-                    <div style={{ fontSize: "12px", color: "#8B9AB0", lineHeight: 1.7, borderTop: "0.5px solid rgba(255,255,255,0.06)", paddingTop: "14px" }}>{result.reasoning}</div>
-                  )}
-
+                  <div style={{ fontFamily: "Georgia, serif", fontSize: "28px", fontWeight: 600, color: "#E8C97A", marginBottom: "6px" }}>{result.sentence_range || result.prediction || "See analysis below"}</div>
+                  {result.confidence && <div style={{ fontSize: "11px", color: "#4A5568", marginBottom: "12px" }}>Confidence: {result.confidence}</div>}
+                  {result.reasoning && <div style={{ fontSize: "12px", color: "#8B9AB0", lineHeight: 1.7, borderTop: "0.5px solid rgba(255,255,255,0.06)", paddingTop: "14px" }}>{result.reasoning}</div>}
+                  {result.answer && !result.reasoning && <div style={{ fontSize: "12px", color: "#8B9AB0", lineHeight: 1.7, borderTop: "0.5px solid rgba(255,255,255,0.06)", paddingTop: "14px" }}>{result.answer}</div>}
                   <div style={{ fontSize: "10px", color: "#4A5568", marginTop: "14px", paddingTop: "12px", borderTop: "0.5px solid rgba(255,255,255,0.06)", lineHeight: 1.5 }}>
-                    This prediction is based on pattern matching against Zimbabwe Magistrates' Court records. Actual outcomes depend on the presiding magistrate's discretion.
+                    Based on Zimbabwe Magistrates' Court precedent. Actual outcomes depend on the presiding magistrate's discretion.
                   </div>
                 </div>
               )}
@@ -167,21 +166,11 @@ export default function SentencingPage() {
             </div>
           </div>
 
-          <div style={{ display: "flex", gap: "10px", alignItems: "center", marginTop: "24px" }}>
-            <button type="submit" disabled={loading} style={{
-              background: "#C9A84C", color: "#0A0F1E", fontFamily: "Inter, sans-serif",
-              fontSize: "13px", fontWeight: 600, border: "none", borderRadius: "10px",
-              padding: "12px 24px", cursor: loading ? "not-allowed" : "pointer",
-              display: "inline-flex", alignItems: "center", gap: "8px", opacity: loading ? 0.7 : 1,
-            }}>
-              <Scale size={15} />
-              {loading ? "Predicting…" : "Predict Sentence Range"}
+          <div style={{ display: "flex", gap: "10px", alignItems: "center", marginTop: "24px", flexWrap: "wrap" as const }}>
+            <button type="submit" disabled={loading} style={{ background: "#C9A84C", color: "#0A0F1E", fontFamily: "Inter, sans-serif", fontSize: "13px", fontWeight: 600, border: "none", borderRadius: "10px", padding: "12px 24px", cursor: loading ? "not-allowed" : "pointer", display: "inline-flex", alignItems: "center", gap: "8px", opacity: loading ? 0.7 : 1 }}>
+              <Scale size={15} />{loading ? "Predicting…" : "Predict Sentence Range"}
             </button>
-            <button type="button" onClick={handleReset} style={{
-              background: "none", color: "#8B9AB0", fontFamily: "Inter, sans-serif",
-              fontSize: "12px", border: "0.5px solid rgba(255,255,255,0.06)", borderRadius: "10px",
-              padding: "12px 18px", cursor: "pointer",
-            }}>Reset</button>
+            <button type="button" onClick={handleReset} style={{ background: "none", color: "#8B9AB0", fontFamily: "Inter, sans-serif", fontSize: "12px", border: "0.5px solid rgba(255,255,255,0.06)", borderRadius: "10px", padding: "12px 18px", cursor: "pointer" }}>Reset</button>
           </div>
         </form>
       </main>

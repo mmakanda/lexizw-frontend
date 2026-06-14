@@ -200,7 +200,7 @@ export default function FormsPage() {
                 <div style={{ background: "#141C2E", border: "0.5px solid rgba(201,168,76,0.18)", borderRadius: "14px", padding: "24px 26px" }}>
                   <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "16px" }}>
                     <div style={{ fontFamily: "Georgia, serif", fontSize: "15px", fontWeight: 600, color: "#EEE9DC" }}>Generated Form</div>
-                    <a href={result.download_url} style={{ display: "inline-flex", alignItems: "center", gap: "6px", fontSize: "12px", fontWeight: 500, color: "#C9A84C", background: "rgba(201,168,76,0.1)", border: "0.5px solid rgba(201,168,76,0.2)", borderRadius: "8px", padding: "7px 14px", textDecoration: "none" }}>
+                    <a href={`https://lexizw-backend-production.up.railway.app${result.download_url}`} style={{ display: "inline-flex", alignItems: "center", gap: "6px", fontSize: "12px", fontWeight: 500, color: "#C9A84C", background: "rgba(201,168,76,0.1)", border: "0.5px solid rgba(201,168,76,0.2)", borderRadius: "8px", padding: "7px 14px", textDecoration: "none" }}>
                       <Download size={13} /> Download PDF
                     </a>
                   </div>

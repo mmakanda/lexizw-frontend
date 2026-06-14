@@ -8,22 +8,25 @@ const SUGGESTED = [
   "Employment dismissal grounds Zimbabwe",
   "Criminal sentencing theft Magistrates Court",
   "Lease termination notice period",
-  "Constitutional rights CDPA 2021",
+  "Constitutional rights Zimbabwe 2013",
 ]
 
+const COURTS = [
+  { id: "high_court", label: "High Court" },
+  { id: "supreme_court", label: "Supreme Court" },
+  { id: "constitutional_court", label: "Constitutional Court" },
+  { id: "labour", label: "Labour Court" },
+]
+
+const TABS = ["All Sources", "Case Law", "Statutes", "Statutory Instruments"]
+
 export default function SearchPage() {
-  const [query, setQuery]   = useState("")
+  const [query, setQuery]     = useState("")
   const [filters, setFilters] = useState<string[]>([])
   const [loading, setLoading] = useState(false)
   const [result, setResult]   = useState<any>(null)
   const [error, setError]     = useState<string|null>(null)
-
-  const COURTS = [
-    { id: "high_court", label: "High Court" },
-    { id: "supreme_court", label: "Supreme Court" },
-    { id: "constitutional_court", label: "Constitutional Court" },
-    { id: "labour", label: "Labour Court" },
-  ]
+  const [tab, setTab]         = useState("All Sources")
 
   function toggleFilter(id: string) {
     setFilters(f => f.includes(id) ? f.filter(x => x !== id) : [...f, id])
@@ -44,62 +47,56 @@ export default function SearchPage() {
     finally { setLoading(false) }
   }
 
-  const TABS = ["All Sources", "Case Law", "Statutes", "Statutory Instruments"]
-  const [tab, setTab] = useState("All Sources")
-
   return (
     <div style={{ display: "flex", flexDirection: "row", minHeight: "100vh", background: "#0A0F1E" }}>
       <Sidebar />
-      <main style={{ flex: 1, display: "flex", flexDirection: "column", overflow: "hidden" }}>
+      <main className="lz-main-content" style={{ flex: 1, display: "flex", flexDirection: "column", overflow: "hidden", minWidth: 0 }}>
 
-        {/* Page header with tabs */}
-        <div style={{ padding: "28px 36px 0", borderBottom: "0.5px solid rgba(255,255,255,0.06)" }}>
+        {/* Header */}
+        <div style={{ padding: "clamp(1.5rem, 4vw, 28px) clamp(1rem, 4vw, 36px) 0", borderBottom: "0.5px solid rgba(255,255,255,0.06)", flexShrink: 0 }}>
           <div style={{ fontSize: "10px", fontWeight: 600, letterSpacing: "0.14em", textTransform: "uppercase" as const, color: "#4A5568", marginBottom: "6px" }}>Legal Research</div>
-          <h1 style={{ fontFamily: "Georgia, serif", fontSize: "26px", fontWeight: 600, color: "#EEE9DC", margin: "0 0 4px" }}>Search Zimbabwe Law</h1>
+          <h1 style={{ fontFamily: "Georgia, serif", fontSize: "clamp(20px, 4vw, 26px)", fontWeight: 600, color: "#EEE9DC", margin: "0 0 4px" }}>Search Zimbabwe Law</h1>
           <p style={{ fontSize: "13px", color: "#8B9AB0", marginBottom: "20px" }}>Case law, statutes, and Statutory Instruments — powered by pgvector RAG</p>
-          <div style={{ display: "flex", gap: 0 }}>
+          <div style={{ display: "flex", gap: 0, overflowX: "auto" as const }}>
             {TABS.map(t => (
               <button key={t} onClick={() => setTab(t)} style={{
-                fontSize: "12px", fontWeight: 500, padding: "10px 18px",
-                borderBottom: t === tab ? "2px solid #C9A84C" : "2px solid transparent",
+                fontSize: "12px", fontWeight: 500, padding: "10px 16px", whiteSpace: "nowrap" as const,
                 color: t === tab ? "#E8C97A" : "#8B9AB0",
-                background: "none",
+                background: "none", border: "none",
+                borderBottom: t === tab ? "2px solid #C9A84C" : "2px solid transparent",
                 cursor: "pointer",
               }}>{t}</button>
             ))}
           </div>
         </div>
 
-        <div style={{ padding: "28px 36px", flex: 1, overflowY: "auto" as const }}>
+        <div style={{ padding: "clamp(1rem, 4vw, 28px) clamp(1rem, 4vw, 36px)", flex: 1, overflowY: "auto" as const }}>
 
           {/* Search box */}
-          <div style={{ marginBottom: "20px" }}>
+          <div style={{ marginBottom: "16px" }}>
             <div style={{ fontSize: "10px", fontWeight: 600, letterSpacing: "0.1em", textTransform: "uppercase" as const, color: "#8B9AB0", marginBottom: "10px" }}>Your legal question</div>
-            <div style={{
-              display: "flex", alignItems: "center", gap: "10px",
-              background: "#1A2235", border: "0.5px solid rgba(201,168,76,0.25)",
-              borderRadius: "12px", padding: "14px 18px",
-              boxShadow: "0 0 0 4px rgba(201,168,76,0.04)",
-            }}>
+            <div style={{ display: "flex", alignItems: "center", gap: "10px", background: "#1A2235", border: "0.5px solid rgba(201,168,76,0.25)", borderRadius: "12px", padding: "12px 16px" }}>
               <Search size={18} color="#C9A84C" style={{ flexShrink: 0 }} />
               <input
                 value={query} onChange={e => setQuery(e.target.value)}
                 onKeyDown={e => e.key === "Enter" && search()}
-                placeholder="e.g. What is the test for granting a provisional interdict in Zimbabwe?"
-                style={{ background: "none", border: "none", outline: "none", fontFamily: "Inter, sans-serif", fontSize: "14px", color: "#EEE9DC", flex: 1, caretColor: "#C9A84C" }}
+                placeholder="e.g. What is the test for granting a provisional interdict?"
+                style={{ background: "none", border: "none", outline: "none", fontFamily: "Inter, sans-serif", fontSize: "14px", color: "#EEE9DC", flex: 1, caretColor: "#C9A84C", minWidth: 0 }}
               />
-              <button onClick={search} disabled={loading} style={{
-                background: "#C9A84C", color: "#0A0F1E", fontSize: "12px", fontWeight: 600,
-                border: "none", borderRadius: "8px", padding: "8px 16px", cursor: "pointer",
-                fontFamily: "Inter, sans-serif", whiteSpace: "nowrap" as const, opacity: loading ? 0.7 : 1,
-              }}>{loading ? "Searching…" : "Search →"}</button>
+              <button onClick={search} disabled={loading || !query.trim()} style={{
+                background: loading || !query.trim() ? "#4A5568" : "#C9A84C",
+                color: "#0A0F1E", fontSize: "12px", fontWeight: 600,
+                border: "none", borderRadius: "8px", padding: "8px 14px",
+                cursor: loading || !query.trim() ? "not-allowed" : "pointer",
+                fontFamily: "Inter, sans-serif", whiteSpace: "nowrap" as const, flexShrink: 0,
+              }}>{loading ? "…" : "Search →"}</button>
             </div>
 
             {/* Suggested queries */}
             {!result && (
               <div style={{ display: "flex", flexWrap: "wrap" as const, gap: "8px", marginTop: "12px" }}>
                 {SUGGESTED.map(s => (
-                  <button key={s} onClick={() => { setQuery(s); }} style={{
+                  <button key={s} onClick={() => setQuery(s)} style={{
                     fontSize: "11px", color: "#8B9AB0", background: "rgba(255,255,255,0.03)",
                     border: "0.5px solid rgba(255,255,255,0.06)", borderRadius: "6px",
                     padding: "4px 10px", cursor: "pointer",
@@ -127,7 +124,7 @@ export default function SearchPage() {
 
           {error && (
             <div style={{ display: "flex", alignItems: "center", gap: "8px", padding: "10px 14px", background: "rgba(216,90,48,0.08)", border: "0.5px solid rgba(216,90,48,0.25)", borderRadius: "8px", color: "#E8845A", fontSize: "13px", marginBottom: "20px" }}>
-              <AlertCircle size={14} /> {error}
+              <AlertCircle size={14} />{error}
             </div>
           )}
 
@@ -139,7 +136,7 @@ export default function SearchPage() {
               </div>
 
               {/* AI Answer */}
-              <div style={{ background: "#141C2E", border: "0.5px solid rgba(201,168,76,0.18)", borderRadius: "14px", padding: "22px 24px", marginBottom: "16px" }}>
+              <div style={{ background: "#141C2E", border: "0.5px solid rgba(201,168,76,0.18)", borderRadius: "14px", padding: "20px 22px", marginBottom: "16px" }}>
                 <div style={{ fontSize: "10px", fontWeight: 600, letterSpacing: "0.1em", textTransform: "uppercase" as const, color: "#C9A84C", marginBottom: "12px" }}>AI Analysis</div>
                 <div style={{ fontSize: "14px", color: "#EEE9DC", lineHeight: 1.75 }}>{result.answer}</div>
               </div>
@@ -147,29 +144,21 @@ export default function SearchPage() {
               {/* Source cards */}
               <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
                 {result.sources?.map((s: any, i: number) => (
-                  <div key={i} style={{
-                    background: "#1A2235", border: "0.5px solid rgba(255,255,255,0.06)",
-                    borderRadius: "12px", padding: "18px 20px", cursor: "pointer",
-                  }}
+                  <div key={i} style={{ background: "#1A2235", border: "0.5px solid rgba(255,255,255,0.06)", borderRadius: "12px", padding: "16px 18px" }}
                     onMouseEnter={e => { e.currentTarget.style.borderColor = "rgba(201,168,76,0.18)"; e.currentTarget.style.background = "rgba(26,34,53,0.9)" }}
                     onMouseLeave={e => { e.currentTarget.style.borderColor = "rgba(255,255,255,0.06)"; e.currentTarget.style.background = "#1A2235" }}
                   >
-                    <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", marginBottom: "8px" }}>
-                      <div style={{ fontFamily: "Georgia, serif", fontSize: "14px", fontWeight: 600, color: "#EEE9DC", flex: 1, marginRight: "12px" }}>{s.title}</div>
-                      <span style={{
-                        fontSize: "9px", fontWeight: 600, letterSpacing: "0.08em", textTransform: "uppercase" as const,
-                        padding: "3px 8px", borderRadius: "4px", flexShrink: 0,
-                        background: "rgba(201,168,76,0.1)", color: "#C9A84C",
-                        border: "0.5px solid rgba(201,168,76,0.2)",
-                      }}>{s.court || "Zimbabwe"}</span>
+                    <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", marginBottom: "8px", gap: "12px" }}>
+                      <div style={{ fontFamily: "Georgia, serif", fontSize: "14px", fontWeight: 600, color: "#EEE9DC", flex: 1 }}>{s.title}</div>
+                      <span style={{ fontSize: "9px", fontWeight: 600, letterSpacing: "0.08em", textTransform: "uppercase" as const, padding: "3px 8px", borderRadius: "4px", flexShrink: 0, background: "rgba(201,168,76,0.1)", color: "#C9A84C", border: "0.5px solid rgba(201,168,76,0.2)" }}>{s.court || "ZW"}</span>
                     </div>
                     <div style={{ fontSize: "12px", color: "#8B9AB0", lineHeight: 1.6, marginBottom: "10px" }}>{s.excerpt}</div>
-                    <div style={{ display: "flex", gap: "16px", alignItems: "center" }}>
+                    <div style={{ display: "flex", gap: "12px", alignItems: "center", flexWrap: "wrap" as const }}>
                       {s.judgment_date && <span style={{ fontSize: "10px", color: "#4A5568" }}>📅 {s.judgment_date}</span>}
                       {s.citation && <span style={{ fontSize: "10px", color: "#4A5568" }}>{s.citation}</span>}
                       {s.url && s.url.startsWith("http") && (
                         <a href={s.url} target="_blank" rel="noopener noreferrer" style={{ marginLeft: "auto", fontSize: "10px", color: "#C9A84C", display: "flex", alignItems: "center", gap: "4px", textDecoration: "none" }}>
-                          <ExternalLink size={11} /> View source
+                          <ExternalLink size={11} />View source
                         </a>
                       )}
                     </div>

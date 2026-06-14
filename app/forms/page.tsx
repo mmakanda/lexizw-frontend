@@ -1,230 +1,214 @@
 "use client"
 import { useState } from "react"
 import { Sidebar } from "@/components/layout/sidebar"
-import { ClipboardList, Download, AlertCircle, ChevronRight } from "lucide-react"
+import { ClipboardList, Download, AlertCircle, ChevronRight, ArrowLeft, Sparkles } from "lucide-react"
 
 const FORM_TYPES: Record<string, {
-  label: string
-  court: string
+  label: string; court: string; tag: string;
   fields: { key: string; label: string; type?: string; required?: boolean; rows?: number }[]
 }> = {
   hc12_summons: {
-    label: "High Court Summons (HC12)",
-    court: "High Court of Zimbabwe",
+    label: "High Court Summons (HC12)", court: "High Court of Zimbabwe", tag: "HC",
     fields: [
-      { key: "plaintiff_name",      label: "Plaintiff Full Name / Entity",    required: true },
-      { key: "plaintiff_address",   label: "Plaintiff Address",               required: true },
-      { key: "defendant_name",      label: "Defendant Full Name / Entity",    required: true },
-      { key: "defendant_address",   label: "Defendant Address",               required: true },
-      { key: "claim_description",   label: "Nature of Claim",                 required: true, rows: 3 },
-      { key: "currency",            label: "Currency (USD / ZiG)" },
-      { key: "amount",              label: "Amount Claimed" },
-      { key: "legal_practitioner",  label: "Legal Practitioner Name & Firm",  required: true },
+      { key: "plaintiff_name",     label: "Plaintiff Full Name / Entity", required: true },
+      { key: "plaintiff_address",  label: "Plaintiff Address", required: true },
+      { key: "defendant_name",     label: "Defendant Full Name / Entity", required: true },
+      { key: "defendant_address",  label: "Defendant Address", required: true },
+      { key: "claim_description",  label: "Nature of Claim", required: true, rows: 3 },
+      { key: "currency",           label: "Currency (USD / ZiG)" },
+      { key: "amount",             label: "Amount Claimed" },
+      { key: "legal_practitioner", label: "Legal Practitioner Name & Firm", required: true },
     ],
   },
   magistrates_summons: {
-    label: "Magistrates\' Court Summons",
-    court: "Magistrates\' Court of Zimbabwe",
+    label: "Magistrates' Court Summons", court: "Magistrates' Court of Zimbabwe", tag: "MAG",
     fields: [
-      { key: "plaintiff_name",     label: "Plaintiff Name",         required: true },
-      { key: "plaintiff_address",  label: "Plaintiff Address" },
-      { key: "defendant_name",     label: "Defendant Name",         required: true },
-      { key: "defendant_address",  label: "Defendant Address" },
-      { key: "claim_description",  label: "Claim Description",      required: true, rows: 3 },
-      { key: "currency",           label: "Currency (USD / ZiG)" },
-      { key: "amount",             label: "Amount Claimed" },
-      { key: "court_name",         label: "Court Location (e.g. Harare)" },
+      { key: "plaintiff_name",    label: "Plaintiff Name", required: true },
+      { key: "plaintiff_address", label: "Plaintiff Address" },
+      { key: "defendant_name",    label: "Defendant Name", required: true },
+      { key: "defendant_address", label: "Defendant Address" },
+      { key: "claim",             label: "Nature of Claim", required: true, rows: 2 },
+      { key: "amount",            label: "Amount Claimed" },
     ],
   },
   opposing_affidavit: {
-    label: "Opposing Affidavit",
-    court: "All Courts",
+    label: "Opposing Affidavit", court: "All Courts", tag: "ALL",
     fields: [
-      { key: "deponent_name",   label: "Deponent Full Name",          required: true },
-      { key: "deponent_id",     label: "Deponent ID Number",          required: true },
-      { key: "court",           label: "Court Name",                  required: true },
-      { key: "case_number",     label: "Case Number" },
-      { key: "other_party",     label: "Applicant / Plaintiff Name",  required: true },
-      { key: "grounds",         label: "Grounds of Opposition",       required: true, rows: 5 },
+      { key: "deponent_name",    label: "Deponent Full Name", required: true },
+      { key: "deponent_id",      label: "ID Number" },
+      { key: "deponent_address", label: "Deponent Address" },
+      { key: "case_number",      label: "Case Number", required: true },
+      { key: "court",            label: "Court Name" },
+      { key: "opposition_basis", label: "Basis of Opposition", required: true, rows: 4 },
     ],
   },
   notice_of_motion: {
-    label: "Notice of Motion",
-    court: "High Court of Zimbabwe",
+    label: "Notice of Motion", court: "High Court of Zimbabwe", tag: "HC",
     fields: [
-      { key: "applicant_name",      label: "Applicant Name",          required: true },
-      { key: "legal_practitioner",  label: "Legal Practitioner",      required: true },
-      { key: "respondent_name",     label: "Respondent Name",         required: true },
-      { key: "relief_sought",       label: "Relief Sought",           required: true, rows: 4 },
-      { key: "return_date",         label: "Return Date",             type: "date" },
+      { key: "applicant_name",   label: "Applicant Name", required: true },
+      { key: "respondent_name",  label: "Respondent Name", required: true },
+      { key: "case_number",      label: "Case Number" },
+      { key: "relief_sought",    label: "Relief Sought", required: true, rows: 3 },
+      { key: "return_date",      label: "Return Date", type: "date" },
+      { key: "practitioner",     label: "Legal Practitioner" },
     ],
   },
   chamber_application: {
-    label: "Chamber Application",
-    court: "High Court of Zimbabwe",
+    label: "Chamber Application", court: "High Court of Zimbabwe", tag: "HC",
     fields: [
-      { key: "applicant_name",  label: "Applicant Name",   required: true },
-      { key: "respondent_name", label: "Respondent Name",  required: true },
-      { key: "relief_sought",   label: "Relief Sought",    required: true, rows: 3 },
-      { key: "grounds",         label: "Grounds",          required: true, rows: 4 },
+      { key: "applicant_name",   label: "Applicant Name", required: true },
+      { key: "respondent_name",  label: "Respondent Name" },
+      { key: "case_number",      label: "Case Number" },
+      { key: "urgency_grounds",  label: "Grounds for Urgency", required: true, rows: 3 },
+      { key: "relief_sought",    label: "Relief Sought", required: true, rows: 3 },
+      { key: "practitioner",     label: "Legal Practitioner", required: true },
     ],
   },
   mitigation_letter: {
-    label: "Mitigation Letter",
-    court: "Magistrates\' Court",
+    label: "Mitigation Letter", court: "Magistrates' Court", tag: "MAG",
     fields: [
-      { key: "accused_name",       label: "Accused Full Name",        required: true },
-      { key: "court",              label: "Court",                    required: true },
-      { key: "offence",            label: "Offence",                  required: true },
-      { key: "background",         label: "Personal Background",      required: true, rows: 3 },
-      { key: "family_situation",   label: "Family Situation",         rows: 2 },
-      { key: "employment",         label: "Employment Status" },
-      { key: "remorse_statement",  label: "Statement of Remorse",     rows: 2 },
-      { key: "mitigating_factors", label: "Other Mitigating Factors", rows: 3 },
-      { key: "language",           label: "Language (en = English, sn = Shona)" },
+      { key: "accused_name",     label: "Accused Name", required: true },
+      { key: "offence",          label: "Offence", required: true },
+      { key: "personal_details", label: "Personal Circumstances", rows: 3 },
+      { key: "mitigation",       label: "Mitigating Factors", required: true, rows: 4 },
+      { key: "practitioner",     label: "Legal Practitioner" },
     ],
   },
 }
 
+const TAG_COLORS: Record<string, { bg: string; color: string; border: string }> = {
+  HC:  { bg: "rgba(201,168,76,0.1)",  color: "#C9A84C", border: "rgba(201,168,76,0.2)" },
+  MAG: { bg: "rgba(29,158,117,0.1)",  color: "#1D9E75", border: "rgba(29,158,117,0.2)" },
+  ALL: { bg: "rgba(127,119,221,0.1)", color: "#7F77DD", border: "rgba(127,119,221,0.2)" },
+}
+
+const I: React.CSSProperties = {
+  width: "100%", background: "#1A2235",
+  border: "0.5px solid rgba(255,255,255,0.06)", borderRadius: "10px",
+  padding: "11px 14px", fontSize: "13px", color: "#EEE9DC",
+  fontFamily: "Inter, sans-serif", outline: "none", boxSizing: "border-box",
+}
+
 export default function FormsPage() {
-  const [selected, setSelected] = useState<string | null>(null)
-  const [fields, setFields]     = useState<Record<string, string>>({})
+  const [formType, setFormType] = useState<string|null>(null)
+  const [fields, setFields]     = useState<Record<string,string>>({})
   const [loading, setLoading]   = useState(false)
   const [result, setResult]     = useState<any>(null)
-  const [error, setError]       = useState<string | null>(null)
-
-  function selectForm(key: string) {
-    setSelected(key); setFields({}); setResult(null); setError(null)
-  }
+  const [error, setError]       = useState<string|null>(null)
 
   async function generate() {
-    if (!selected) return
+    if (!formType) return
     setLoading(true); setError(null)
     try {
       const res = await fetch("/api/forms", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          form_type: selected,
-          fields,
-          language: fields.language || "en",
-        }),
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ form_type: formType, fields }),
       })
       const json = await res.json()
       if (!res.ok) throw new Error(json.error || "Generation failed")
       setResult(json)
-    } catch (err: any) {
-      setError(err.message)
-    } finally {
-      setLoading(false)
-    }
+    } catch (err: any) { setError(err.message) }
+    finally { setLoading(false) }
   }
 
-  const form = selected ? FORM_TYPES[selected] : null
+  const tmpl = formType ? FORM_TYPES[formType] : null
 
   return (
-    <div style={{display:"flex",flexDirection:"row",minHeight:"100vh"}}>
+    <div style={{ display: "flex", flexDirection: "row", minHeight: "100vh", background: "#0A0F1E" }}>
       <Sidebar />
-      <main className="flex-1 p-8 max-w-4xl">
-        <h1 className="text-2xl font-bold text-gray-900 mb-1">Court Forms</h1>
-        <p className="text-gray-500 mb-6">
-          Generate court-ready documents compliant with Zimbabwe High Court Rules and Magistrates\' Court Act
-        </p>
+      <main style={{ flex: 1, padding: "2.5rem 3rem", maxWidth: "960px" }}>
 
-        {!selected ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            {Object.entries(FORM_TYPES).map(([key, f]) => (
-              <button
-                key={key}
-                onClick={() => selectForm(key)}
-                className="card text-left hover:border-brand-300 transition-colors group"
-              >
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <ClipboardList size={20} className="text-brand-600" />
-                    <div>
-                      <p className="font-medium text-gray-900 group-hover:text-brand-700">{f.label}</p>
-                      <p className="text-xs text-gray-400 mt-0.5">{f.court}</p>
+        <div style={{ marginBottom: "2rem" }}>
+          <div style={{ fontSize: "10px", fontWeight: 600, letterSpacing: "0.14em", textTransform: "uppercase" as const, color: "#4A5568", marginBottom: "6px" }}>Court Documents</div>
+          <h1 style={{ fontFamily: "Georgia, serif", fontSize: "26px", fontWeight: 700, color: "#EEE9DC", margin: "0 0 4px" }}>Court Forms</h1>
+          <p style={{ fontSize: "13px", color: "#8B9AB0" }}>Generate court-ready documents compliant with Zimbabwe High Court Rules and Magistrates' Court Act</p>
+        </div>
+
+        {!formType ? (
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "12px" }}>
+            {Object.entries(FORM_TYPES).map(([key, t]) => {
+              const tagStyle = TAG_COLORS[t.tag] || TAG_COLORS.ALL
+              return (
+                <button key={key} onClick={() => { setFormType(key); setFields({}); setResult(null); setError(null) }}
+                  style={{
+                    background: "#1A2235", border: "0.5px solid rgba(255,255,255,0.06)",
+                    borderRadius: "14px", padding: "20px", cursor: "pointer",
+                    textAlign: "left" as const, transition: "all 0.18s",
+                  }}
+                  onMouseEnter={e => { e.currentTarget.style.borderColor = "rgba(201,168,76,0.3)"; e.currentTarget.style.transform = "translateY(-1px)" }}
+                  onMouseLeave={e => { e.currentTarget.style.borderColor = "rgba(255,255,255,0.06)"; e.currentTarget.style.transform = "translateY(0)" }}
+                >
+                  <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", marginBottom: "12px" }}>
+                    <div style={{ width: "38px", height: "38px", borderRadius: "10px", background: "rgba(201,168,76,0.1)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                      <ClipboardList size={17} color="#E8C97A" />
                     </div>
+                    <ChevronRight size={14} color="#4A5568" />
                   </div>
-                  <ChevronRight size={16} className="text-gray-400" />
-                </div>
-              </button>
-            ))}
+                  <div style={{ fontFamily: "Georgia, serif", fontSize: "14px", fontWeight: 600, color: "#EEE9DC", marginBottom: "4px", lineHeight: 1.3 }}>{t.label}</div>
+                  <div style={{ fontSize: "11px", color: "#4A5568", marginBottom: "12px" }}>{t.court}</div>
+                  <span style={{ fontSize: "9px", fontWeight: 600, letterSpacing: "0.1em", textTransform: "uppercase" as const, padding: "3px 8px", borderRadius: "4px", background: tagStyle.bg, color: tagStyle.color, border: `0.5px solid ${tagStyle.border}` }}>{t.tag === "HC" ? "High Court" : t.tag === "MAG" ? "Magistrates'" : "All Courts"}</span>
+                </button>
+              )
+            })}
           </div>
         ) : (
           <div>
-            <button
-              onClick={() => setSelected(null)}
-              className="text-sm text-brand-600 hover:underline mb-6 flex items-center gap-1"
-            >
-              ← Back to form types
+            <button onClick={() => setFormType(null)} style={{ display: "inline-flex", alignItems: "center", gap: "6px", fontSize: "12px", color: "#C9A84C", background: "none", border: "none", cursor: "pointer", marginBottom: "1.5rem", padding: 0 }}>
+              <ArrowLeft size={13} /> Back to forms
             </button>
 
-            <div className="card mb-6">
-              <div className="mb-4">
-                <h2 className="font-semibold text-gray-900">{form?.label}</h2>
-                <p className="text-xs text-gray-400">{form?.court}</p>
+            <div style={{ background: "#1A2235", border: "0.5px solid rgba(201,168,76,0.18)", borderRadius: "16px", padding: "28px" }}>
+              <div style={{ marginBottom: "20px" }}>
+                <div style={{ fontFamily: "Georgia, serif", fontSize: "18px", fontWeight: 600, color: "#EEE9DC", marginBottom: "4px" }}>{tmpl?.label}</div>
+                <div style={{ fontSize: "12px", color: "#4A5568" }}>{tmpl?.court}</div>
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
-                {form?.fields.map(f => (
-                  <div key={f.key} className={f.rows ? "sm:col-span-2" : ""}>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      {f.label}
-                      {f.required && <span className="text-red-500 ml-1">*</span>}
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px 20px", marginBottom: "20px" }}>
+                {tmpl?.fields.map(f => (
+                  <div key={f.key} style={{ gridColumn: f.rows ? "1 / -1" : undefined }}>
+                    <label style={{ fontSize: "10px", fontWeight: 600, letterSpacing: "0.1em", textTransform: "uppercase" as const, color: "#8B9AB0", display: "block", marginBottom: "6px" }}>
+                      {f.label}{f.required && <span style={{ color: "#D85A30", marginLeft: "3px" }}>*</span>}
                     </label>
                     {f.rows ? (
-                      <textarea
-                        rows={f.rows}
-                        className="input resize-none"
-                        value={fields[f.key] || ""}
-                        onChange={e => setFields(p => ({ ...p, [f.key]: e.target.value }))}
-                      />
+                      <textarea rows={f.rows} style={{ ...I, resize: "vertical" as const }} value={fields[f.key] || ""} onChange={e => setFields(p => ({ ...p, [f.key]: e.target.value }))} />
                     ) : (
-                      <input
-                        type={f.type || "text"}
-                        className="input"
-                        value={fields[f.key] || ""}
-                        onChange={e => setFields(p => ({ ...p, [f.key]: e.target.value }))}
-                      />
+                      <input type={f.type || "text"} style={I} value={fields[f.key] || ""} onChange={e => setFields(p => ({ ...p, [f.key]: e.target.value }))} />
                     )}
                   </div>
                 ))}
               </div>
 
               {error && (
-                <div className="flex items-center gap-2 p-3 bg-red-50 border border-red-200 rounded-lg mb-4 text-red-700 text-sm">
+                <div style={{ display: "flex", alignItems: "center", gap: "8px", padding: "10px 14px", background: "rgba(216,90,48,0.08)", border: "0.5px solid rgba(216,90,48,0.25)", borderRadius: "8px", color: "#E8845A", fontSize: "13px", marginBottom: "16px" }}>
                   <AlertCircle size={14} /> {error}
                 </div>
               )}
 
-              <button onClick={generate} disabled={loading} className="btn-primary">
-                {loading ? "Generating..." : "Generate Form"}
+              <button onClick={generate} disabled={loading} style={{
+                background: "#C9A84C", color: "#0A0F1E", fontFamily: "Inter, sans-serif",
+                fontSize: "13px", fontWeight: 600, border: "none", borderRadius: "10px",
+                padding: "12px 24px", cursor: loading ? "not-allowed" : "pointer",
+                display: "inline-flex", alignItems: "center", gap: "8px", opacity: loading ? 0.7 : 1,
+              }}>
+                <Sparkles size={15} />
+                {loading ? "Generating…" : "Generate Court Form"}
               </button>
             </div>
 
             {result && (
-              <div className="space-y-4">
-                <div className="card">
-                  <div className="flex items-center justify-between mb-3">
-                    <h2 className="font-semibold text-gray-900">Generated Form</h2>
-                    <a
-                      href={result.download_url}
-                      className="btn-secondary flex items-center gap-2 text-sm"
-                    >
-                      <Download size={14} /> Download DOCX
+              <div style={{ marginTop: "20px" }}>
+                <div style={{ background: "#141C2E", border: "0.5px solid rgba(201,168,76,0.18)", borderRadius: "14px", padding: "24px 26px" }}>
+                  <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "16px" }}>
+                    <div style={{ fontFamily: "Georgia, serif", fontSize: "15px", fontWeight: 600, color: "#EEE9DC" }}>Generated Form</div>
+                    <a href={result.download_url} style={{ display: "inline-flex", alignItems: "center", gap: "6px", fontSize: "12px", fontWeight: 500, color: "#C9A84C", background: "rgba(201,168,76,0.1)", border: "0.5px solid rgba(201,168,76,0.2)", borderRadius: "8px", padding: "7px 14px", textDecoration: "none" }}>
+                      <Download size={13} /> Download PDF
                     </a>
                   </div>
-                  {result.preview_text && (
-                    <pre className="text-xs text-gray-700 whitespace-pre-wrap font-mono bg-gray-50 p-4 rounded-lg max-h-96 overflow-auto">
-                      {result.preview_text}...
-                    </pre>
-                  )}
+                  <pre style={{ fontSize: "12px", color: "#8B9AB0", whiteSpace: "pre-wrap" as const, fontFamily: "monospace", background: "#0A0F1E", padding: "16px", borderRadius: "8px", maxHeight: "400px", overflowY: "auto" as const, border: "0.5px solid rgba(255,255,255,0.06)" }}>
+                    {result.generated_text || result.content}
+                  </pre>
                 </div>
-                <p className="text-xs text-gray-400">
-                  ⚠ AI-generated. Review carefully and have a qualified legal practitioner check before filing.
-                </p>
+                <p style={{ fontSize: "10px", color: "#4A5568", marginTop: "10px" }}>⚠ AI-generated. Verify accuracy with a qualified legal practitioner before filing.</p>
               </div>
             )}
           </div>
@@ -233,3 +217,4 @@ export default function FormsPage() {
     </div>
   )
 }
+

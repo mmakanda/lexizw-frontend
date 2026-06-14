@@ -1,32 +1,123 @@
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,600;0,700;1,400&family=Inter:wght@300;400;500;600&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-@layer base {
-  :root {
-    --brand: #0d9488;
-  }
-  * { box-sizing: border-box; }
-  body { font-family: Inter, system-ui, sans-serif; }
+:root {
+  --navy: #0A0F1E;
+  --navy-mid: #111827;
+  --navy-soft: #1A2235;
+  --navy-card: #141C2E;
+  --gold: #C9A84C;
+  --gold-light: #E8C97A;
+  --gold-pale: #F5E9C8;
+  --text-main: #EEE9DC;
+  --text-muted: #8B9AB0;
+  --text-dim: #4A5568;
+  --teal: #1D9E75;
+  --coral: #D85A30;
+  --purple: #7F77DD;
+  --border-glow: rgba(201,168,76,0.18);
+  --border-sub: rgba(255,255,255,0.06);
+}
+
+* { box-sizing: border-box; }
+body {
+  font-family: 'Inter', system-ui, sans-serif;
+  background: var(--navy);
+  color: var(--text-main);
+  margin: 0;
 }
 
 @layer components {
-  .btn-primary {
-    @apply bg-brand-700 text-white px-4 py-2 rounded-lg font-medium
-           hover:bg-brand-800 disabled:opacity-50 disabled:cursor-not-allowed
-           transition-colors focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2;
+  .lz-input {
+    width: 100%;
+    background: var(--navy-soft);
+    border: 0.5px solid var(--border-sub);
+    border-radius: 10px;
+    padding: 11px 14px;
+    font-size: 13px;
+    color: var(--text-main);
+    font-family: 'Inter', sans-serif;
+    outline: none;
+    transition: border-color 0.15s;
+    box-sizing: border-box;
   }
-  .btn-secondary {
-    @apply bg-white text-gray-700 px-4 py-2 rounded-lg font-medium border border-gray-300
-           hover:bg-gray-50 disabled:opacity-50 transition-colors
-           focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2;
+  .lz-input:focus { border-color: rgba(201,168,76,0.35); }
+  .lz-input::placeholder { color: var(--text-dim); }
+
+  .lz-textarea {
+    min-height: 90px;
+    resize: vertical;
   }
-  .input {
-    @apply w-full rounded-lg border border-gray-300 px-3 py-2 text-sm
-           focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent
-           disabled:bg-gray-100 disabled:cursor-not-allowed;
+
+  .lz-btn-gold {
+    background: var(--gold);
+    color: var(--navy);
+    font-family: 'Inter', sans-serif;
+    font-size: 13px;
+    font-weight: 600;
+    border: none;
+    border-radius: 10px;
+    padding: 12px 24px;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    letter-spacing: 0.02em;
+    transition: opacity 0.15s;
   }
-  .card {
-    @apply bg-white rounded-xl border border-gray-200 shadow-sm p-6;
+  .lz-btn-gold:disabled { opacity: 0.6; cursor: not-allowed; }
+
+  .lz-btn-ghost {
+    background: none;
+    color: var(--text-muted);
+    font-family: 'Inter', sans-serif;
+    font-size: 12px;
+    border: 0.5px solid var(--border-sub);
+    border-radius: 10px;
+    padding: 12px 18px;
+    cursor: pointer;
+  }
+
+  .lz-card {
+    background: var(--navy-soft);
+    border: 0.5px solid var(--border-sub);
+    border-radius: 14px;
+    padding: 22px;
+  }
+
+  .lz-label {
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    display: block;
+    margin-bottom: 6px;
+  }
+
+  .lz-eyebrow {
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--text-dim);
+    margin-bottom: 6px;
+  }
+
+  .lz-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 24px;
+    font-weight: 600;
+    color: var(--text-main);
+    margin: 0 0 4px;
+  }
+
+  .lz-subtitle {
+    font-size: 13px;
+    color: var(--text-muted);
   }
 }
+

@@ -63,7 +63,7 @@ export default function SearchPage() {
                 fontSize: "12px", fontWeight: 500, padding: "10px 18px",
                 borderBottom: t === tab ? "2px solid #C9A84C" : "2px solid transparent",
                 color: t === tab ? "#E8C97A" : "#8B9AB0",
-                background: "none", border: "none", borderBottom: t === tab ? "2px solid #C9A84C" : "2px solid transparent",
+                background: "none",
                 cursor: "pointer",
               }}>{t}</button>
             ))}

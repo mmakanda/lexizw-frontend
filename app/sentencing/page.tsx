@@ -85,8 +85,8 @@ export default function SentencingPage() {
                   <label style={{ fontSize: "10px", fontWeight: 600, letterSpacing: "0.1em", textTransform: "uppercase" as const, color: "#8B9AB0", display: "block", marginBottom: "6px" }}>
                     Case Facts <span style={{ color: "#D85A30" }}>*</span>
                   </label>
-                  <textarea {...register("case_facts")} style={{ ...I, minHeight: "90px", resize: "vertical" as const }} placeholder="Describe the facts: what was stolen, value, circumstances, how offence was committed…" />
-                  {errors.case_facts && <p style={{ fontSize: "11px", color: "#D85A30", marginTop: "4px" }}>{errors.case_facts.message}</p>}
+                  <textarea {...register("offence_details")} style={{ ...I, minHeight: "90px", resize: "vertical" as const }} placeholder="Describe the facts: what was stolen, value, circumstances, how offence was committed…" />
+                  {errors.offence_details && <p style={{ fontSize: "11px", color: "#D85A30", marginTop: "4px" }}>{errors.offence_details.message}</p>}
                 </div>
 
                 <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px", marginBottom: "14px" }}>
@@ -95,7 +95,7 @@ export default function SentencingPage() {
                     <input {...register("value_involved")} style={I} type="number" placeholder="0.00" />
                   </div>
                   <div style={{ display: "flex", alignItems: "center", gap: "8px", paddingTop: "22px" }}>
-                    <input {...register("first_offender")} type="checkbox" style={{ accentColor: "#1D9E75", width: "14px", height: "14px" }} defaultChecked />
+                    <input {...register("is_first_offender")} type="checkbox" style={{ accentColor: "#1D9E75", width: "14px", height: "14px" }} defaultChecked />
                     <label style={{ fontSize: "12px", color: "#8B9AB0" }}>First offender</label>
                   </div>
                 </div>

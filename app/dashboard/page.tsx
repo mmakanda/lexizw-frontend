@@ -5,7 +5,7 @@ import { Sidebar } from "@/components/layout/sidebar"
 import { Search, FileText, ClipboardList, Scale, ArrowRight, Zap } from "lucide-react"
 
 const MODULES = [
-  { href: "/search",     icon: Search,      label: "Legal Research",   desc: "Search Zimbabwean case law and statutes using natural language",       tag: "RAG · pgvector", color: "#C9A84C", rgb: "201,168,76" },
+  { href: "/search",     icon: Search,      label: "Legal Research",   desc: "Search Zimbabwean case law and statutes using natural language",       tag: "Verified Sources", color: "#C9A84C", rgb: "201,168,76" },
   { href: "/draft",      icon: FileText,    label: "Contract Drafter", desc: "Generate NDAs, employment contracts, leases and more",                  tag: "AI Drafting",    color: "#1D9E75", rgb: "29,158,117" },
   { href: "/forms",      icon: ClipboardList, label: "Court Forms",    desc: "Generate HC12 summons, affidavits, and court-ready documents",          tag: "HC · Magistrates'", color: "#7F77DD", rgb: "127,119,221" },
   { href: "/sentencing", icon: Scale,       label: "Sentencing Tool",  desc: "Predict sentence ranges using Zimbabwe precedent",                      tag: "Predictive AI",  color: "#D85A30", rgb: "216,90,48" },

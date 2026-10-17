@@ -1,75 +1,76 @@
 "use client"
+
 import { useState } from "react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { UserButton } from "@clerk/nextjs"
-import { Search, FileText, ClipboardList, Scale, BarChart2, Settings, Menu, X } from "lucide-react"
+import {
+  Search, FileText, ClipboardList, Scale, LayoutDashboard,
+  Settings, Menu, X, ChevronRight
+} from "lucide-react"
 
 const NAV = [
-  { href: "/dashboard",  label: "Dashboard",        icon: BarChart2 },
-  { href: "/search",     label: "Legal Research",   icon: Search },
-  { href: "/draft",      label: "Contract Drafter", icon: FileText },
-  { href: "/forms",      label: "Court Forms",      icon: ClipboardList },
-  { href: "/sentencing", label: "Sentencing Tool",  icon: Scale },
+  { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
+  { href: "/search", label: "Legal Research", icon: Search },
+  { href: "/draft", label: "Contract Drafter", icon: FileText },
+  { href: "/forms", label: "Court Forms", icon: ClipboardList },
+  { href: "/sentencing", label: "Sentencing Tool", icon: Scale },
 ]
+
+function Brand() {
+  return (
+    <Link href="/dashboard" className="lz-brand" aria-label="LexiZW dashboard">
+      <span className="lz-brand-mark" aria-hidden="true">L<span>.</span></span>
+      <span className="lz-brand-copy">
+        <span className="lz-brand-name">LexiZW</span>
+        <span className="lz-brand-subtitle">AI LEGAL SUITE</span>
+      </span>
+    </Link>
+  )
+}
 
 function NavContent({ path, onClose }: { path: string; onClose?: () => void }) {
   return (
     <>
-      <div style={{ padding: "0 24px 24px", borderBottom: "0.5px solid rgba(255,255,255,0.06)", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-        <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-          <div style={{ width: "34px", height: "34px", background: "#C9A84C", borderRadius: "8px", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="#0A0F1E" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M12 3l1.5 4.5H18l-3.75 2.7 1.5 4.5L12 12.3l-3.75 2.4 1.5-4.5L6 7.5h4.5z"/>
-              <line x1="12" y1="15" x2="12" y2="21"/>
-              <line x1="8" y1="21" x2="16" y2="21"/>
-            </svg>
-          </div>
-          <div>
-            <div style={{ fontFamily: "Georgia, serif", fontSize: "17px", fontWeight: 700, color: "#E8C97A", lineHeight: 1 }}>LexiZW</div>
-            <div style={{ fontSize: "9px", fontWeight: 500, color: "#4A5568", letterSpacing: "0.12em", textTransform: "uppercase" as const, marginTop: "3px" }}>AI Legal Suite · Beta</div>
-          </div>
-        </div>
-        {onClose && (
-          <button onClick={onClose} style={{ background: "none", border: "none", cursor: "pointer", color: "#4A5568", padding: "4px" }}>
-            <X size={20} />
-          </button>
-        )}
-      </div>
-
-      <nav style={{ padding: "20px 12px", flex: 1, display: "flex", flexDirection: "column", gap: "4px" }}>
-        <div style={{ fontSize: "9px", fontWeight: 600, letterSpacing: "0.14em", textTransform: "uppercase" as const, color: "#4A5568", padding: "0 12px", marginBottom: "6px" }}>Workspace</div>
+      <div className="lz-sidebar-brand"><Brand /></div>
+      <nav className="lz-sidebar-nav" aria-label="Main navigation">
+        <p className="lz-nav-label">WORKSPACE</p>
         {NAV.map(({ href, label, icon: Icon }) => {
           const active = path === href || (href !== "/dashboard" && path.startsWith(href))
           return (
-            <Link key={href} href={href} onClick={onClose} style={{
-              display: "flex", alignItems: "center", gap: "10px",
-              padding: "9px 12px", borderRadius: "8px",
-              fontSize: "13px", fontWeight: active ? 500 : 400,
-              color: active ? "#E8C97A" : "#8B9AB0",
-              background: active ? "rgba(201,168,76,0.12)" : "transparent",
-              border: active ? "0.5px solid rgba(201,168,76,0.25)" : "0.5px solid transparent",
-              textDecoration: "none",
-            }}>
-              <Icon size={16} strokeWidth={active ? 2.5 : 1.75} />
-              {label}
+            <Link
+              key={href}
+              href={href}
+              onClick={onClose}
+              className={`lz-nav-link${active ? " is-active" : ""}`}
+              aria-current={active ? "page" : undefined}
+            >
+              <Icon size={17} strokeWidth={active ? 2 : 1.7} />
+              <span>{label}</span>
+              {active && <ChevronRight className="lz-nav-chevron" size={14} />}
             </Link>
           )
         })}
-        <div style={{ fontSize: "9px", fontWeight: 600, letterSpacing: "0.14em", textTransform: "uppercase" as const, color: "#4A5568", padding: "0 12px", marginTop: "20px", marginBottom: "6px" }}>Account</div>
-        <Link href="#" onClick={onClose} style={{ display: "flex", alignItems: "center", gap: "10px", padding: "9px 12px", borderRadius: "8px", fontSize: "13px", color: "#8B9AB0", border: "0.5px solid transparent", textDecoration: "none" }}>
-          <Settings size={16} strokeWidth={1.75} /> Settings
-        </Link>
+        <p className="lz-nav-label lz-nav-label-account">ACCOUNT</p>
+        <div className="lz-nav-link lz-nav-link-muted" aria-label="Account settings are not linked to a dedicated page yet">
+          <Settings size={17} strokeWidth={1.7} />
+          <span>Settings</span>
+        </div>
       </nav>
-
-      <div style={{ padding: "16px 20px 0", borderTop: "0.5px solid rgba(255,255,255,0.06)" }}>
-        <UserButton afterSignOutUrl="/" showName appearance={{
-          elements: {
-            userButtonBox: { color: "#EEE9DC", fontSize: "12px" },
-            userButtonOuterIdentifier: { color: "#EEE9DC", fontSize: "12px" },
-          }
-        }} />
+      <div className="lz-sidebar-account">
+        <p className="lz-nav-label">YOUR ACCOUNT</p>
+        <UserButton
+          afterSignOutUrl="/"
+          showName
+          appearance={{
+            elements: {
+              userButtonBox: { color: "#f3efe5", fontSize: "12px" },
+              userButtonOuterIdentifier: { color: "#f3efe5", fontSize: "12px" },
+            },
+          }}
+        />
       </div>
+      <div className="lz-sidebar-bottom">Built for Zimbabwe’s legal community</div>
     </>
   )
 }
@@ -80,59 +81,43 @@ export function Sidebar() {
 
   return (
     <>
-      {/* Desktop sidebar */}
-      <aside style={{
-        display: "flex", flexDirection: "column",
-        width: "220px", minHeight: "100vh", flexShrink: 0,
-        background: "linear-gradient(180deg, #0D1424 0%, #0A0F1E 100%)",
-        borderRight: "0.5px solid rgba(201,168,76,0.18)",
-        padding: "28px 0 24px",
-      }} className="lz-sidebar-desktop">
+      <aside className="lz-sidebar-desktop">
         <NavContent path={path} />
       </aside>
 
-      {/* Mobile top bar */}
-      <div className="lz-mobile-bar" style={{
-        display: "none", position: "fixed", top: 0, left: 0, right: 0, zIndex: 100,
-        background: "#0D1424", borderBottom: "0.5px solid rgba(201,168,76,0.18)",
-        padding: "12px 16px", alignItems: "center", justifyContent: "space-between",
-      }}>
-        <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-          <div style={{ width: "28px", height: "28px", background: "#C9A84C", borderRadius: "6px", display: "flex", alignItems: "center", justifyContent: "center" }}>
-            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="#0A0F1E" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M12 3l1.5 4.5H18l-3.75 2.7 1.5 4.5L12 12.3l-3.75 2.4 1.5-4.5L6 7.5h4.5z"/>
-            </svg>
-          </div>
-          <span style={{ fontFamily: "Georgia, serif", fontSize: "16px", fontWeight: 700, color: "#E8C97A" }}>LexiZW</span>
-        </div>
-        <button onClick={() => setMobileOpen(true)} style={{ background: "none", border: "none", cursor: "pointer", color: "#E8C97A", padding: "4px" }}>
+      <header className="lz-mobile-bar">
+        <Brand />
+        <button
+          type="button"
+          onClick={() => setMobileOpen(true)}
+          aria-label="Open navigation"
+          className="lz-mobile-menu-button"
+        >
           <Menu size={22} />
         </button>
-      </div>
+      </header>
 
-      {/* Mobile drawer overlay */}
       {mobileOpen && (
-        <div style={{ position: "fixed", inset: 0, zIndex: 200, display: "flex" }}>
-          <div style={{ position: "absolute", inset: 0, background: "rgba(0,0,0,0.6)" }} onClick={() => setMobileOpen(false)} />
-          <div style={{
-            position: "relative", width: "260px", height: "100%",
-            background: "linear-gradient(180deg, #0D1424 0%, #0A0F1E 100%)",
-            borderRight: "0.5px solid rgba(201,168,76,0.18)",
-            display: "flex", flexDirection: "column",
-            padding: "28px 0 24px", overflowY: "auto",
-          }}>
+        <div className="lz-mobile-overlay">
+          <button
+            type="button"
+            className="lz-mobile-scrim"
+            aria-label="Close navigation"
+            onClick={() => setMobileOpen(false)}
+          />
+          <aside className="lz-sidebar-mobile">
+            <button
+              type="button"
+              className="lz-mobile-close"
+              aria-label="Close navigation"
+              onClick={() => setMobileOpen(false)}
+            >
+              <X size={20} />
+            </button>
             <NavContent path={path} onClose={() => setMobileOpen(false)} />
-          </div>
+          </aside>
         </div>
       )}
-
-      <style>{`
-        @media (max-width: 768px) {
-          .lz-sidebar-desktop { display: none !important; }
-          .lz-mobile-bar { display: flex !important; }
-          .lz-main-content { padding-top: 64px !important; }
-        }
-      `}</style>
     </>
   )
 }

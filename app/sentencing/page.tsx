@@ -50,9 +50,9 @@ export default function SentencingPage() {
   function handleReset() { reset(); setMitigating([]); setAggravating([]); setResult(null); setError(null) }
 
   return (
-    <div style={{ display: "flex", flexDirection: "row", minHeight: "100vh", background: "#0A0F1E" }}>
+    <div className="lz-app-shell lz-tool-shell">
       <Sidebar />
-      <main style={{ flex: 1, padding: "clamp(1.5rem, 4vw, 2.5rem) clamp(1rem, 4vw, 3rem)", overflowX: "hidden" }}>
+      <main className="lz-main-content lz-tool-content">
 
         <div style={{ marginBottom: "2rem" }}>
           <div style={{ fontSize: "10px", fontWeight: 600, letterSpacing: "0.14em", textTransform: "uppercase" as const, color: "#4A5568", marginBottom: "6px" }}>Sentencing Predictor</div>

@@ -134,7 +134,7 @@ button, input, textarea, select { font: inherit; }
 .lz-image-caption { position: absolute; right: 22px; bottom: 22px; left: 22px; display: flex; align-items: center; gap: 10px; color: #fffaf0; font-size: 8px; font-weight: 700; letter-spacing: .13em; line-height: 1.6; }
 .lz-image-caption-rule { width: 27px; height: 2px; flex: 0 0 auto; background: #d7bd78; }
 .lz-section { margin-top: 36px; }
-.lz-section-heading { display: flex; justify-content: space-between; align-items: end; gap: 20px; margin-bottom: 17px; }
+.lz-section-heading { display: flex; justify-content: space-between; align-items: flex-end; gap: 20px; margin-bottom: 17px; }
 .lz-section-heading .lz-kicker { margin-bottom: 5px; }
 .lz-section-heading h2 { margin: 0; color: var(--lz-ink); font: 600 clamp(21px, 2vw, 27px)/1.25 'Playfair Display', Georgia, serif; letter-spacing: -.35px; }
 .lz-section-aside { padding-bottom: 3px; color: #858d99; font-size: 9px; font-weight: 700; letter-spacing: .12em; white-space: nowrap; }
@@ -199,7 +199,7 @@ button, input, textarea, select { font: inherit; }
 .lz-public-band-item strong { display: block; margin-bottom: 5px; font: 600 16px 'Playfair Display', Georgia, serif; }
 .lz-public-band-item span { color: #bdc5d0; font-size: 10px; line-height: 1.6; }
 .lz-public-tools { max-width: 1280px; margin: 0 auto; padding: 75px clamp(22px, 5vw, 65px) 80px; }
-.lz-public-tools-heading { display: flex; align-items: end; justify-content: space-between; gap: 20px; margin-bottom: 25px; }
+.lz-public-tools-heading { display: flex; align-items: flex-end; justify-content: space-between; gap: 20px; margin-bottom: 25px; }
 .lz-public-tools-heading h2 { max-width: 560px; margin: 0; color: var(--lz-ink); font: 600 clamp(29px, 3.5vw, 42px)/1.15 'Playfair Display', Georgia, serif; }
 .lz-public-tools-heading p { max-width: 300px; margin: 0; color: #687386; font-size: 11px; line-height: 1.8; }
 .lz-public-tool-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px; }
@@ -265,4 +265,58 @@ button, input, textarea, select { font: inherit; }
   .lz-public-tool p { min-height: 0; }
   .lz-public-footer { padding: 22px 20px; }
 }
+/* LexiZW tool pages — shared editorial layout */
+.lz-tool-shell {
+  min-height: 100vh;
+  background: var(--lz-paper, #f7f5ef);
+  color: var(--lz-ink, #17243a);
+}
 
+.lz-tool-content {
+  box-sizing: border-box;
+  width: calc(100% - 248px);
+  max-width: none;
+  min-width: 0;
+  min-height: 100vh;
+  margin-left: 248px;
+  padding: 38px clamp(24px, 4vw, 60px);
+  overflow-x: clip;
+  background: var(--lz-paper, #f7f5ef);
+  color: var(--lz-ink, #17243a);
+}
+
+.lz-tool-content h1 {
+  color: var(--lz-ink, #17243a) !important;
+  font-family: "Playfair Display", Georgia, serif !important;
+  font-size: clamp(28px, 3vw, 38px) !important;
+  line-height: 1.2;
+  letter-spacing: -0.025em;
+}
+
+.lz-tool-content h2,
+.lz-tool-content h3 {
+  color: var(--lz-ink, #17243a);
+  font-family: "Playfair Display", Georgia, serif;
+}
+
+.lz-tool-content input:not([type="checkbox"]),
+.lz-tool-content textarea,
+.lz-tool-content select {
+  box-sizing: border-box;
+  max-width: 100%;
+}
+
+@media (max-width: 900px) {
+  .lz-tool-content {
+    width: 100%;
+    margin-left: 0;
+    min-height: calc(100vh - 58px);
+    padding: 26px clamp(18px, 4vw, 35px);
+  }
+}
+
+@media (max-width: 640px) {
+  .lz-tool-content {
+    padding: 22px 16px;
+  }
+}

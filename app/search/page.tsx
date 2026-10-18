@@ -46,9 +46,9 @@ export default function SearchPage() {
   }
 
   return (
-    <div style={{ display: "flex", minHeight: "100vh", background: "#f9fafb" }}>
+    <div className="lz-app-shell lz-tool-shell">
       <Sidebar />
-      <main style={{ flex: 1, padding: "2rem", maxWidth: "860px" }}>
+      <main className="lz-main-content lz-tool-content">
         <h1 style={{ fontSize: "1.5rem", fontWeight: 700, marginBottom: "0.25rem" }}>Legal Research</h1>
         <p style={{ color: "#6b7280", marginBottom: "1.5rem" }}>Search Zimbabwean case law, statutes, and Statutory Instruments</p>
 

@@ -1,4 +1,6 @@
 "use client"
+import ReactMarkdown from "react-markdown"
+import remarkGfm from "remark-gfm"
 import { useState } from "react"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
@@ -150,8 +152,8 @@ export default function SentencingPage() {
                   <div style={{ fontSize: "10px", fontWeight: 600, letterSpacing: "0.12em", textTransform: "uppercase" as const, color: "#4A5568", marginBottom: "10px" }}>Predicted sentence range</div>
                   <div style={{ fontFamily: "Georgia, serif", fontSize: "28px", fontWeight: 600, color: "#E8C97A", marginBottom: "6px" }}>{result.sentence_range || result.prediction || "See analysis below"}</div>
                   {result.confidence && <div style={{ fontSize: "11px", color: "#4A5568", marginBottom: "12px" }}>Confidence: {result.confidence}</div>}
-                  {result.reasoning && <div style={{ fontSize: "12px", color: "#8B9AB0", lineHeight: 1.7, borderTop: "0.5px solid rgba(255,255,255,0.06)", paddingTop: "14px" }}>{result.reasoning}</div>}
-                  {result.answer && !result.reasoning && <div style={{ fontSize: "12px", color: "#8B9AB0", lineHeight: 1.7, borderTop: "0.5px solid rgba(255,255,255,0.06)", paddingTop: "14px" }}>{result.answer}</div>}
+                  {result.reasoning && <div style={{ fontSize: "12px", color: "#8B9AB0", lineHeight: 1.7, borderTop: "0.5px solid rgba(255,255,255,0.06)", paddingTop: "14px" }}><ReactMarkdown remarkPlugins={[remarkGfm]}>{result.reasoning}</ReactMarkdown></div>}
+                  {result.answer && !result.reasoning && <div style={{ fontSize: "12px", color: "#8B9AB0", lineHeight: 1.7, borderTop: "0.5px solid rgba(255,255,255,0.06)", paddingTop: "14px" }}><ReactMarkdown remarkPlugins={[remarkGfm]}>{result.answer}</ReactMarkdown></div>}
                   <div style={{ fontSize: "10px", color: "#4A5568", marginTop: "14px", paddingTop: "12px", borderTop: "0.5px solid rgba(255,255,255,0.06)", lineHeight: 1.5 }}>
                     Based on Zimbabwe Magistrates' Court precedent. Actual outcomes depend on the presiding magistrate's discretion.
                   </div>
